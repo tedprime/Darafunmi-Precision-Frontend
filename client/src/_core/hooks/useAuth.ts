@@ -1,0 +1,99 @@
+import { api, clearAuthToken, getStoredUser, setAuthToken } from "@/lib/api";
+import { useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+// ─── Types ────────────────────────────────────────────────────────
+export interface SiteUser {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+}
+
+interface LoginPayload  { email: string; password: string }
+interface SignupPayload { name: string; email: string; password: string; phone?: string; company?: string }
+
+// ─── Query key ───────────────────────────────────────────────────
+const ME_KEY = ["auth", "me"] as const;
+
+// ─── useAuth ─────────────────────────────────────────────────────
+type UseAuthOptions = {
+  redirectOnUnauthenticated?: boolean;
+  redirectPath?: string;
+};
+
+export function useAuth(options?: UseAuthOptions) {
+  const { redirectOnUnauthenticated = false, redirectPath = "/login" } =
+    options ?? {};
+
+  const queryClient = useQueryClient();
+
+  const meQuery = useQuery<SiteUser | null>({
+    queryKey: ME_KEY,
+    queryFn: async () => {
+      const token = localStorage.getItem("site_token");
+      if (!token) return null;
+      try {
+        const { data } = await api.get<{ success: boolean; data: SiteUser }>(
+          "/user/auth/me"
+        );
+        return data.data;
+      } catch {
+        clearAuthToken();
+        return null;
+      }
+    },
+    initialData: getStoredUser<SiteUser>(),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // ── Login ──────────────────────────────────────────────────────
+  const login = useCallback(async (payload: LoginPayload) => {
+    const { data } = await api.post<{
+      success: boolean;
+      token: string;
+      user: SiteUser;
+    }>("/user/auth/login", payload);
+    setAuthToken(data.token, data.user);
+    queryClient.setQueryData(ME_KEY, data.user);
+    return data.user;
+  }, [queryClient]);
+
+  // ── Signup ─────────────────────────────────────────────────────
+  const signup = useCallback(async (payload: SignupPayload) => {
+    const { data } = await api.post<{
+      success: boolean;
+      token: string;
+      user: SiteUser;
+    }>("/user/auth/register", payload);
+    setAuthToken(data.token, data.user);
+    queryClient.setQueryData(ME_KEY, data.user);
+    return data.user;
+  }, [queryClient]);
+
+  // ── Logout ─────────────────────────────────────────────────────
+  const logout = useCallback(() => {
+    clearAuthToken();
+    queryClient.setQueryData(ME_KEY, null);
+    if (redirectOnUnauthenticated && typeof window !== "undefined") {
+      window.location.href = redirectPath;
+    }
+  }, [queryClient, redirectOnUnauthenticated, redirectPath]);
+
+  const state = useMemo(() => ({
+    user:            meQuery.data ?? null,
+    loading:         meQuery.isLoading,
+    error:           meQuery.error ?? null,
+    isAuthenticated: Boolean(meQuery.data),
+  }), [meQuery.data, meQuery.error, meQuery.isLoading]);
+
+  return {
+    ...state,
+    login,
+    signup,
+    logout,
+    refresh: () => meQuery.refetch(),
+  };
+}

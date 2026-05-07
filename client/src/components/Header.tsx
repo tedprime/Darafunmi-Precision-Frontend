@@ -1,0 +1,353 @@
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useAuth } from "@/_core/hooks/useAuth";
+import {
+  Menu,
+  Phone,
+  Mail,
+  Search,
+  ShoppingCart,
+  User,
+  ChevronDown,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const services = [
+  { title: "Calibration Services", href: "/services/calibration", description: "ISO-compliant calibration for laboratory and medical equipment" },
+  { title: "Maintenance & Repair", href: "/services/maintenance", description: "Routine maintenance and repair services" },
+  { title: "Training Programs", href: "/services/training", description: "Technical training for equipment operation" },
+  { title: "Consulting Services", href: "/services/consulting", description: "Process optimization and compliance consulting" },
+];
+
+const industries = [
+  { title: "Pharmaceutical", href: "/industries/pharmaceutical" },
+  { title: "Manufacturing", href: "/industries/manufacturing" },
+  { title: "Oil and Gas", href: "/industries/oil-and-gas" },
+  { title: "Marine", href: "/industries/marine" },
+  { title: "Beverages", href: "/industries/beverages" },
+  { title: "Packaging", href: "/industries/packaging" },
+];
+
+const resources = [
+  { title: "Blog & News", href: "/blog" },
+  { title: "Case Studies", href: "/case-studies" },
+  { title: "Downloads", href: "/resources" },
+];
+
+export default function Header() {
+  const [location] = useLocation();
+  const { user, isAuthenticated } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      {/* Top bar with contact info */}
+      <div className="hidden md:block bg-primary text-primary-foreground">
+        <div className="container flex items-center justify-between py-2 text-sm">
+          <div className="flex items-center gap-6">
+            <a href="tel:+2348034680544" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Phone className="h-4 w-4" />
+              <span>+234 803 468 0544</span>
+            </a>
+            <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Mail className="h-4 w-4" />
+              <span>darafunmi2013@yahoo.com</span>
+            </a>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-primary-foreground/80">Accuracy • Effectiveness • Competency</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main navigation */}
+      <div className="container">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-primary">
+              <span className="text-white font-bold text-xl">D</span>
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-bold text-lg text-foreground">Darafunmi</span>
+              <span className="block text-xs text-muted-foreground -mt-1">Precision Technologies</span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <NavigationMenu className="hidden lg:flex" viewport={false}>
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Link href="/">
+                  <NavigationMenuLink className={cn(
+                    "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    location === "/" && "bg-accent text-accent-foreground"
+                  )}>
+                    Home
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Link href="/about">
+                  <NavigationMenuLink className={cn(
+                    "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    location === "/about" && "bg-accent text-accent-foreground"
+                  )}>
+                    About Us
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Services</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2">
+                    {services.map((service) => (
+                      <li key={service.title}>
+                        <Link href={service.href}>
+                          <NavigationMenuLink className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                            <div className="text-sm font-medium leading-none">{service.title}</div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              {service.description}
+                            </p>
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    ))}
+                    <li className="col-span-2">
+                      <Link href="/services">
+                        <NavigationMenuLink className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm font-medium text-primary">
+                          View All Services →
+                        </NavigationMenuLink>
+                      </Link>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Link href="/products">
+                  <NavigationMenuLink className={cn(
+                    "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    location.startsWith("/products") && "bg-accent text-accent-foreground"
+                  )}>
+                    Products
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Industries</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[300px] gap-2 p-4">
+                    {industries.map((industry) => (
+                      <li key={industry.title}>
+                        <Link href={industry.href}>
+                          <NavigationMenuLink className="block select-none rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm">
+                            {industry.title}
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[200px] gap-2 p-4">
+                    {resources.map((resource) => (
+                      <li key={resource.title}>
+                        <Link href={resource.href}>
+                          <NavigationMenuLink className="block select-none rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm">
+                            {resource.title}
+                          </NavigationMenuLink>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <Link href="/contact">
+                  <NavigationMenuLink className={cn(
+                    "group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50",
+                    location === "/contact" && "bg-accent text-accent-foreground"
+                  )}>
+                    Contact
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="hidden md:flex">
+              <Search className="h-5 w-5" />
+            </Button>
+            
+            <Link href="/cart">
+              <Button variant="ghost" size="icon" className="relative">
+                <ShoppingCart className="h-5 w-5" />
+              </Button>
+            </Link>
+
+            {isAuthenticated ? (
+              <Link href="/dashboard">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" size="sm" className="hidden md:flex">
+                  Sign In
+                </Button>
+              </Link>
+            )}
+
+            <Link href="/quote">
+              <Button className="hidden md:flex bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                Get a Quote
+              </Button>
+            </Link>
+
+            {/* Mobile menu trigger */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[380px] flex flex-col p-0 overflow-y-auto">
+                {/* Sheet header */}
+                <div className="px-6 py-5 border-b">
+                  <SheetHeader>
+                    <SheetTitle className="text-left text-base font-semibold">Navigation</SheetTitle>
+                  </SheetHeader>
+                </div>
+
+                {/* Nav links */}
+                <nav className="flex-1 px-6 py-4 flex flex-col gap-1">
+                  {[
+                    { label: "Home", href: "/" },
+                    { label: "About Us", href: "/about" },
+                    { label: "Products", href: "/products" },
+                    { label: "Blog", href: "/blog" },
+                    { label: "Contact", href: "/contact" },
+                  ].map(({ label, href }) => (
+                    <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}>
+                      <span className={cn(
+                        "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                        location === href ? "bg-accent text-accent-foreground" : "text-foreground"
+                      )}>
+                        {label}
+                      </span>
+                    </Link>
+                  ))}
+
+                  {/* Services accordion */}
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="services" className="border-none">
+                      <AccordionTrigger className="px-3 py-2.5 text-sm font-medium rounded-md hover:bg-accent hover:no-underline [&[data-state=open]]:bg-accent">
+                        Services
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-1">
+                        <div className="flex flex-col gap-0.5 pl-3 mt-1">
+                          {services.map((service) => (
+                            <Link key={service.title} href={service.href} onClick={() => setMobileMenuOpen(false)}>
+                              <span className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                                {service.title}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem value="industries" className="border-none">
+                      <AccordionTrigger className="px-3 py-2.5 text-sm font-medium rounded-md hover:bg-accent hover:no-underline [&[data-state=open]]:bg-accent">
+                        Industries
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-1">
+                        <div className="flex flex-col gap-0.5 pl-3 mt-1">
+                          {industries.map((industry) => (
+                            <Link key={industry.title} href={industry.href} onClick={() => setMobileMenuOpen(false)}>
+                              <span className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                                {industry.title}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </nav>
+
+                {/* CTA buttons */}
+                <div className="px-6 py-4 border-t flex flex-col gap-3">
+                  {isAuthenticated ? (
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">My Account</Button>
+                    </Link>
+                  ) : (
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">Sign In</Button>
+                    </Link>
+                  )}
+                  <Link href="/quote" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground">
+                      Get a Quote
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Contact info footer */}
+                <div className="px-6 py-4 border-t bg-muted/30">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-3">Get in touch</p>
+                  <div className="flex flex-col gap-2">
+                    <a href="tel:+2348034680544" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      <Phone className="h-4 w-4 flex-shrink-0" />
+                      +234 803 468 0544
+                    </a>
+                    <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      <Mail className="h-4 w-4 flex-shrink-0" />
+                      darafunmi2013@yahoo.com
+                    </a>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
