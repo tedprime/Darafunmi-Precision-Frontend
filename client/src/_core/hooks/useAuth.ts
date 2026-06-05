@@ -97,3 +97,4 @@ export function useAuth(options?: UseAuthOptions) {
     refresh: () => meQuery.refetch(),
   };
 }
+ 
