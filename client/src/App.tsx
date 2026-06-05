@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Pages
 import Home from "./pages/Home";
@@ -34,47 +35,49 @@ function Router() {
     <>
       <ScrollToTop />
       <Switch>
-      {/* Main Pages */}
-      <Route path="/" component={Home} />
-      <Route path="/about" component={About} />
-      
-      {/* Services */}
-      <Route path="/services" component={Services} />
-      <Route path="/services/:slug" component={ServiceDetail} />
-      
-      {/* Products / E-commerce */}
-      <Route path="/products" component={Products} />
-      <Route path="/products/:slug" component={ProductDetail} />
-      <Route path="/cart" component={Cart} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/order-confirmation/:orderNumber" component={OrderConfirmation} />
-      <Route path="/booking-confirmation/:bookingNumber" component={BookingConfirmation} />
-      
-      {/* Industries */}
-      <Route path="/industries" component={Industries} />
-      <Route path="/industries/:slug" component={IndustryDetail} />
-      
-      {/* Contact & Quotes */}
-      <Route path="/contact" component={Contact} />
-      <Route path="/quote" component={Quote} />
-      <Route path="/book-service" component={BookService} />
-      
-      {/* Resources */}
-      <Route path="/blog" component={Blog} />
-      <Route path="/blog/:slug" component={BlogPost} />
-      <Route path="/case-studies" component={CaseStudies} />
-      <Route path="/resources" component={Resources} />
-      
-      {/* Auth */}
-      <Route path="/login" component={Login} />
+        {/* Main Pages */}
+        <Route path="/" component={Home} />
+        <Route path="/about" component={About} />
 
-      {/* Customer Portal */}
-      <Route path="/dashboard" component={Dashboard} />
-      
-      {/* 404 */}
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+        {/* Services */}
+        <Route path="/services" component={Services} />
+        <Route path="/services/:slug" component={ServiceDetail} />
+
+        {/* Products / E-commerce */}
+        <Route path="/products" component={Products} />
+        <Route path="/products/:slug" component={ProductDetail} />
+        <Route path="/cart" component={Cart} />
+        <Route path="/checkout" component={Checkout} />
+        <Route path="/order-confirmation/:orderNumber" component={OrderConfirmation} />
+        <Route path="/booking-confirmation/:bookingNumber" component={BookingConfirmation} />
+
+        {/* Industries */}
+        <Route path="/industries" component={Industries} />
+        <Route path="/industries/:slug" component={IndustryDetail} />
+
+        {/* Contact & Quotes */}
+        <Route path="/contact" component={Contact} />
+        <Route path="/quote" component={Quote} />
+        <Route path="/book-service" component={BookService} />
+
+        {/* Resources */}
+        <Route path="/blog" component={Blog} />
+        <Route path="/blog/:slug" component={BlogPost} />
+        <Route path="/case-studies" component={CaseStudies} />
+        <Route path="/resources" component={Resources} />
+
+        {/* Auth */}
+        <Route path="/login" component={Login} />
+
+        {/* Customer Portal */}
+        <Route path="/dashboard">
+          <ProtectedRoute component={Dashboard} />
+        </Route>
+
+        {/* 404 */}
+        <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
     </>
   );
 }
