@@ -40,7 +40,7 @@ export default function Login() {
       toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Invalid email or password.");
+      toast.error(err?.message ?? "Invalid email or password.");
     } finally {
       setLoginLoading(false);
     }

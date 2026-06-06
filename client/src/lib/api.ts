@@ -1,8 +1,5 @@
 import axios from "axios";
 
-// ─── Axios instance ───────────────────────────────────────────────
-// In development, Vite proxies /api → http://localhost:5000
-// In production, set VITE_API_URL to the deployed backend origin.
 const baseURL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api/v1`
   : "/api/v1";
@@ -10,28 +7,42 @@ const baseURL = import.meta.env.VITE_API_URL
 export const api = axios.create({
   baseURL,
   timeout: 30_000,
+  withCredentials: true, // sends cookies cross-origin
   headers: { "Content-Type": "application/json" },
 });
 
+// ─── Cookie helpers ───────────────────────────────────────────────
+const setCookie = (name: string, value: string, days = 7) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`;
+};
+
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+const deleteCookie = (name: string) => {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+};
+
 // ─── Auth token injection ─────────────────────────────────────────
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("site_token");
+  const token = getCookie("site_token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
 // ─── Response normaliser ──────────────────────────────────────────
-// Unwrap the { success, data } envelope so callers get data directly
 api.interceptors.response.use(
   (res) => res,
   (error) => {
     const msg =
       error.response?.data?.message || error.message || "Something went wrong";
 
-    // Auto-clear token on 401
     if (error.response?.status === 401) {
-      localStorage.removeItem("site_token");
-      localStorage.removeItem("site_user");
+      deleteCookie("site_token");
+      deleteCookie("site_user");
     }
 
     return Promise.reject(new Error(msg));
@@ -40,18 +51,18 @@ api.interceptors.response.use(
 
 // ─── Convenience helpers ──────────────────────────────────────────
 export const setAuthToken = (token: string, user: unknown) => {
-  localStorage.setItem("site_token", token);
-  localStorage.setItem("site_user", JSON.stringify(user));
+  setCookie("site_token", token);
+  setCookie("site_user", JSON.stringify(user));
 };
 
 export const clearAuthToken = () => {
-  localStorage.removeItem("site_token");
-  localStorage.removeItem("site_user");
+  deleteCookie("site_token");
+  deleteCookie("site_user");
 };
 
 export const getStoredUser = <T = unknown>(): T | null => {
   try {
-    const raw = localStorage.getItem("site_user");
+    const raw = getCookie("site_user");
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;

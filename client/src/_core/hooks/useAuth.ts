@@ -32,7 +32,7 @@ export function useAuth(options?: UseAuthOptions) {
   const meQuery = useQuery<SiteUser | null>({
     queryKey: ME_KEY,
     queryFn: async () => {
-      const token = localStorage.getItem("site_token");
+      const token = document.cookie.match(/(?:^|; )site_token=([^;]*)/)?.[1];
       if (!token) return null;
       try {
         const { data } = await api.get<{ success: boolean; data: SiteUser }>(
@@ -89,11 +89,18 @@ export function useAuth(options?: UseAuthOptions) {
     isAuthenticated: Boolean(meQuery.data),
   }), [meQuery.data, meQuery.error, meQuery.isLoading]);
 
+  const updateProfile = useCallback(async (payload: Partial<Pick<SiteUser, "name" | "phone" | "company">>) => {
+  const { data } = await api.patch<{ success: boolean; data: SiteUser }>("/user/auth/me", payload);
+  queryClient.setQueryData(ME_KEY, data.data);
+  return data.data;
+}, [queryClient]);
+
   return {
     ...state,
     login,
     signup,
     logout,
+    updateProfile,
     refresh: () => meQuery.refetch(),
   };
 }
