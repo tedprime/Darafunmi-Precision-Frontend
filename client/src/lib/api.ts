@@ -1,13 +1,14 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/v1`
-  : "/api/v1";
+// ─── Axios instance ───────────────────────────────────────────────
+// All requests go through /api/v1 which is proxied by Vercel to
+// https://api.darafunmi.com — this eliminates CORS entirely.
+const baseURL = "/api/v1";
 
 export const api = axios.create({
   baseURL,
   timeout: 30_000,
-  // withCredentials: true, // sends cookies cross-origin
+  // withCredentials removed — no longer cross-origin thanks to Vercel proxy
   headers: { "Content-Type": "application/json" },
 });
 
@@ -40,6 +41,7 @@ api.interceptors.response.use(
     const msg =
       error.response?.data?.message || error.message || "Something went wrong";
 
+    // Auto-clear token on 401
     if (error.response?.status === 401) {
       deleteCookie("site_token");
       deleteCookie("site_user");

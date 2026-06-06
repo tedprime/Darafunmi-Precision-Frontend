@@ -9,10 +9,13 @@ export interface SiteUser {
   email: string;
   phone?: string;
   company?: string;
+  role?: string;       // returned by /me and used in Dashboard
+  createdAt?: string;  // returned by /me and used in Dashboard
 }
 
 interface LoginPayload  { email: string; password: string }
 interface SignupPayload { name: string; email: string; password: string; phone?: string; company?: string }
+interface UpdateProfilePayload { name?: string; phone?: string; company?: string }
 
 // ─── Query key ───────────────────────────────────────────────────
 const ME_KEY = ["auth", "me"] as const;
@@ -32,6 +35,7 @@ export function useAuth(options?: UseAuthOptions) {
   const meQuery = useQuery<SiteUser | null>({
     queryKey: ME_KEY,
     queryFn: async () => {
+      // Read token from cookie (not localStorage)
       const token = document.cookie.match(/(?:^|; )site_token=([^;]*)/)?.[1];
       if (!token) return null;
       try {
@@ -44,7 +48,10 @@ export function useAuth(options?: UseAuthOptions) {
         return null;
       }
     },
-    initialData: getStoredUser<SiteUser>(),
+    // undefined instead of getStoredUser() so React Query shows loading:true
+    // while the /me fetch is in-flight, preventing premature "not authenticated"
+    initialData: undefined,
+    staleTime: 1000 * 60 * 5, // cache for 5 mins — avoids refetch on every render
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -82,18 +89,22 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, [queryClient, redirectOnUnauthenticated, redirectPath]);
 
+  // ── Update Profile ─────────────────────────────────────────────
+  const updateProfile = useCallback(async (payload: UpdateProfilePayload) => {
+    const { data } = await api.patch<{ success: boolean; data: SiteUser }>(
+      "/user/auth/me",
+      payload
+    );
+    queryClient.setQueryData(ME_KEY, data.data);
+    return data.data;
+  }, [queryClient]);
+
   const state = useMemo(() => ({
     user:            meQuery.data ?? null,
     loading:         meQuery.isLoading,
     error:           meQuery.error ?? null,
     isAuthenticated: Boolean(meQuery.data),
   }), [meQuery.data, meQuery.error, meQuery.isLoading]);
-
-  const updateProfile = useCallback(async (payload: Partial<Pick<SiteUser, "name" | "phone" | "company">>) => {
-  const { data } = await api.patch<{ success: boolean; data: SiteUser }>("/user/auth/me", payload);
-  queryClient.setQueryData(ME_KEY, data.data);
-  return data.data;
-}, [queryClient]);
 
   return {
     ...state,
@@ -104,4 +115,3 @@ export function useAuth(options?: UseAuthOptions) {
     refresh: () => meQuery.refetch(),
   };
 }
- 

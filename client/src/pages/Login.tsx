@@ -40,6 +40,7 @@ export default function Login() {
       toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (err: any) {
+      // api.ts interceptor extracts the message into err.message
       toast.error(err?.message ?? "Invalid email or password.");
     } finally {
       setLoginLoading(false);
@@ -72,7 +73,8 @@ export default function Login() {
       toast.success("Account created! Welcome.");
       navigate("/dashboard");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Registration failed. Please try again.");
+      // api.ts interceptor extracts the message into err.message
+      toast.error(err?.message ?? "Registration failed. Please try again.");
     } finally {
       setRegLoading(false);
     }
