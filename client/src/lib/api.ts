@@ -7,7 +7,7 @@ const baseURL = import.meta.env.VITE_API_URL
 export const api = axios.create({
   baseURL,
   timeout: 30_000,
-  withCredentials: true, // sends cookies cross-origin
+  // withCredentials: true, // sends cookies cross-origin
   headers: { "Content-Type": "application/json" },
 });
 
