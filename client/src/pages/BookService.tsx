@@ -25,12 +25,12 @@ import {
   Target,
 } from "lucide-react";
 
-// ─── Service types must match what the backend accepts ───────────
+// ─── Services (numeric IDs matching the backend service_id column) ─
 const services = [
-  { id: "calibration",  name: "Calibration Services",  icon: Microscope,    description: "ISO-compliant calibration for laboratory and medical equipment" },
-  { id: "maintenance",  name: "Maintenance & Repair",   icon: Wrench,        description: "Comprehensive maintenance and repair services" },
-  { id: "training",     name: "Training Programs",      icon: GraduationCap, description: "Technical training for equipment operation" },
-  { id: "consulting",   name: "Consulting Services",    icon: Target,        description: "Process optimization and compliance consulting" },
+  { id: 1, name: "Calibration Services",  icon: Microscope,    description: "ISO-compliant calibration for laboratory and medical equipment" },
+  { id: 2, name: "Maintenance & Repair",   icon: Wrench,        description: "Comprehensive maintenance and repair services" },
+  { id: 3, name: "Training Programs",      icon: GraduationCap, description: "Technical training for equipment operation" },
+  { id: 4, name: "Consulting Services",    icon: Target,        description: "Process optimization and compliance consulting" },
 ];
 
 const timeSlots = [
@@ -38,31 +38,36 @@ const timeSlots = [
   "02:00 PM", "03:00 PM", "04:00 PM",
 ];
 
-// ─── API payload shape (matches POST /bookings) ──────────────────
+// ─── API payload — matches DB columns exactly ─────────────────────
 interface BookingPayload {
-  serviceType: string;
-  preferredDate: string;
-  name: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  notes?: string;
+  serviceId?:        number;
+  scheduledDate?:    string;
+  scheduledTime?:    string;
+  customerName:      string;
+  customerEmail:     string;
+  customerPhone?:    string;
+  companyName?:      string;
+  serviceLocation?:  string;
+  equipmentDetails?: string;
+  notes?:            string;
 }
 
 export default function BookService() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
-    preferredDate: "",
-    preferredTime: "",
-    name:          user?.name  ?? "",
-    email:         user?.email ?? "",
-    phone:         user?.phone ?? "",
-    company:       user?.company ?? "",
-    notes:         "",
+    scheduledDate:    "",
+    scheduledTime:    "",
+    customerName:     user?.name    ?? "",
+    customerEmail:    user?.email   ?? "",
+    customerPhone:    user?.phone   ?? "",
+    companyName:      user?.company ?? "",
+    serviceLocation:  "",
+    equipmentDetails: "",
+    notes:            "",
   });
 
   // ── Mutation ───────────────────────────────────────────────────
@@ -71,7 +76,6 @@ export default function BookService() {
       api.post("/bookings", payload).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Booking submitted successfully!");
-      // Navigate to confirmation page using bookingNumber from response
       navigate(`/booking-confirmation/${data.bookingNumber}`);
     },
     onError: (error: Error) => {
@@ -85,30 +89,23 @@ export default function BookService() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedService) {
-      toast.error("Please select a service");
-      return;
-    }
-    if (!formData.name || !formData.email) {
+    if (!selectedService) { toast.error("Please select a service"); return; }
+    if (!formData.customerName || !formData.customerEmail) {
       toast.error("Name and email are required");
       return;
     }
 
-    // Combine date + time into ISO-compatible string if both provided
-    const preferredDate = formData.preferredDate
-      ? formData.preferredTime
-        ? `${formData.preferredDate} ${formData.preferredTime}`
-        : formData.preferredDate
-      : new Date().toISOString().split("T")[0];
-
     createBookingMutation.mutate({
-      serviceType:   selectedService,
-      preferredDate,
-      name:          formData.name,
-      email:         formData.email,
-      phone:         formData.phone   || undefined,
-      company:       formData.company || undefined,
-      notes:         formData.notes   || undefined,
+      serviceId:        selectedService,
+      scheduledDate:    formData.scheduledDate    || undefined,
+      scheduledTime:    formData.scheduledTime    || undefined,
+      customerName:     formData.customerName,
+      customerEmail:    formData.customerEmail,
+      customerPhone:    formData.customerPhone    || undefined,
+      companyName:      formData.companyName      || undefined,
+      serviceLocation:  formData.serviceLocation  || undefined,
+      equipmentDetails: formData.equipmentDetails || undefined,
+      notes:            formData.notes            || undefined,
     });
   };
 
@@ -208,18 +205,18 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="preferredDate">
+                      <Label htmlFor="scheduledDate">
                         Preferred Date <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          id="preferredDate"
+                          id="scheduledDate"
                           type="date"
                           className="pl-10"
-                          value={formData.preferredDate}
+                          value={formData.scheduledDate}
                           min={new Date().toISOString().split("T")[0]}
-                          onChange={(e) => handleChange("preferredDate", e.target.value)}
+                          onChange={(e) => handleChange("scheduledDate", e.target.value)}
                           required
                         />
                       </div>
@@ -228,8 +225,8 @@ export default function BookService() {
                     <div className="space-y-2">
                       <Label>Preferred Time</Label>
                       <Select
-                        value={formData.preferredTime}
-                        onValueChange={(v) => handleChange("preferredTime", v)}
+                        value={formData.scheduledTime}
+                        onValueChange={(v) => handleChange("scheduledTime", v)}
                       >
                         <SelectTrigger>
                           <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -245,19 +242,36 @@ export default function BookService() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes-step2">Additional Notes</Label>
+                    <Label htmlFor="serviceLocation">Service Location</Label>
+                    <Select
+                      value={formData.serviceLocation}
+                      onValueChange={(v) => handleChange("serviceLocation", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select location preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="on-site">On-Site (At Your Location)</SelectItem>
+                        <SelectItem value="laboratory">Our Laboratory</SelectItem>
+                        <SelectItem value="remote">Remote/Virtual (Training Only)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="equipmentDetails">Equipment Details</Label>
                     <Textarea
-                      id="notes-step2"
-                      placeholder="Describe the equipment to be serviced, any special requirements, etc."
-                      value={formData.notes}
-                      onChange={(e) => handleChange("notes", e.target.value)}
+                      id="equipmentDetails"
+                      placeholder="Describe the equipment to be serviced (type, model, quantity, etc.)"
+                      value={formData.equipmentDetails}
+                      onChange={(e) => handleChange("equipmentDetails", e.target.value)}
                       rows={4}
                     />
                   </div>
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.preferredDate}>
+                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.scheduledDate}>
                       Continue
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -283,16 +297,16 @@ export default function BookService() {
                             <span>{selectedServiceData.name}</span>
                           </div>
                         )}
-                        {formData.preferredDate && (
+                        {formData.scheduledDate && (
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-primary" />
-                            <span>{new Date(formData.preferredDate).toLocaleDateString()}</span>
+                            <span>{new Date(formData.scheduledDate).toLocaleDateString()}</span>
                           </div>
                         )}
-                        {formData.preferredTime && (
+                        {formData.scheduledTime && (
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-primary" />
-                            <span>{formData.preferredTime}</span>
+                            <span>{formData.scheduledTime}</span>
                           </div>
                         )}
                       </div>
@@ -301,23 +315,27 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
+                      <Label htmlFor="customerName">
+                        Full Name <span className="text-destructive">*</span>
+                      </Label>
                       <Input
-                        id="name"
+                        id="customerName"
                         placeholder="John Doe"
-                        value={formData.name}
-                        onChange={(e) => handleChange("name", e.target.value)}
+                        value={formData.customerName}
+                        onChange={(e) => handleChange("customerName", e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
+                      <Label htmlFor="customerEmail">
+                        Email Address <span className="text-destructive">*</span>
+                      </Label>
                       <Input
-                        id="email"
+                        id="customerEmail"
                         type="email"
                         placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => handleChange("email", e.target.value)}
+                        value={formData.customerEmail}
+                        onChange={(e) => handleChange("customerEmail", e.target.value)}
                         required
                       />
                     </div>
@@ -325,23 +343,34 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="customerPhone">Phone Number</Label>
                       <Input
-                        id="phone"
+                        id="customerPhone"
                         placeholder="+234 xxx xxx xxxx"
-                        value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
+                        value={formData.customerPhone}
+                        onChange={(e) => handleChange("customerPhone", e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="company">Company Name</Label>
+                      <Label htmlFor="companyName">Company Name</Label>
                       <Input
-                        id="company"
+                        id="companyName"
                         placeholder="Your Company"
-                        value={formData.company}
-                        onChange={(e) => handleChange("company", e.target.value)}
+                        value={formData.companyName}
+                        onChange={(e) => handleChange("companyName", e.target.value)}
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Additional Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Any additional information or special requirements..."
+                      value={formData.notes}
+                      onChange={(e) => handleChange("notes", e.target.value)}
+                      rows={3}
+                    />
                   </div>
 
                   <div className="flex justify-between">
