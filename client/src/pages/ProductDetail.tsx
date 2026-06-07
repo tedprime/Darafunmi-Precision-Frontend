@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { useParams, Link } from "wouter";
@@ -36,6 +36,7 @@ export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const queryClient = useQueryClient();
 
   const product = demoProducts[slug || ""] || demoProducts["digital-pressure-gauge"];
 
@@ -44,6 +45,9 @@ export default function ProductDetail() {
       api.post("/cart", data).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
       toast.success(`${quantity} item(s) added to cart!`);
+      // Invalidate the shared ["cart"] query so Header badge and Cart page
+      // both update immediately without needing a page refresh
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
     onError: () => {
       toast.error("Failed to add product to cart");

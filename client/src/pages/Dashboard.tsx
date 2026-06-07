@@ -154,7 +154,11 @@ export default function Dashboard() {
                       <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{orders?.length || 0}</p>
+                      {ordersLoading ? (
+                        <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
+                      ) : (
+                        <p className="text-2xl font-bold">{orders?.length ?? 0}</p>
+                      )}
                       <p className="text-sm text-muted-foreground">Total Orders</p>
                     </div>
                   </div>
@@ -167,7 +171,11 @@ export default function Dashboard() {
                       <Calendar className="h-6 w-6 text-secondary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{bookings?.length || 0}</p>
+                      {bookingsLoading ? (
+                        <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
+                      ) : (
+                        <p className="text-2xl font-bold">{bookings?.length ?? 0}</p>
+                      )}
                       <p className="text-sm text-muted-foreground">Service Bookings</p>
                     </div>
                   </div>
@@ -180,9 +188,15 @@ export default function Dashboard() {
                       <CheckCircle2 className="h-6 w-6 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">
-                        {orders?.filter((o: any) => o.status === "delivered").length || 0}
-                      </p>
+                      {ordersLoading ? (
+                        <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
+                      ) : (
+                        <p className="text-2xl font-bold">
+                          {orders?.filter((o: any) =>
+                            ["delivered", "completed"].includes(o.status)
+                          ).length ?? 0}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground">Completed</p>
                     </div>
                   </div>
@@ -195,9 +209,15 @@ export default function Dashboard() {
                       <Clock className="h-6 w-6 text-amber-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">
-                        {orders?.filter((o: any) => ["pending", "processing", "shipped"].includes(o.status)).length || 0}
-                      </p>
+                      {ordersLoading ? (
+                        <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
+                      ) : (
+                        <p className="text-2xl font-bold">
+                          {orders?.filter((o: any) =>
+                            ["pending", "confirmed", "processing", "shipped"].includes(o.status)
+                          ).length ?? 0}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground">In Progress</p>
                     </div>
                   </div>
