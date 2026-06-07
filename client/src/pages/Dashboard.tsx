@@ -24,35 +24,47 @@ import {
 export default function Dashboard() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
 
-  // ─── Orders Query with Fallback Target Array Detection ─────────────────────
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ["orders", "my"],
-    queryFn: () =>
-      api.get("/orders/my").then((r) => {
+  // ─── Orders Query with Console Logger ─────────────────────
+const { data: orders = [], isLoading: ordersLoading } = useQuery({
+  queryKey: ["orders", "my"],
+  queryFn: () =>
+    api.get("/orders/my")
+      .then((r) => {
+        console.log("DEBUG - Orders Raw API Response:", r);
+        console.log("DEBUG - Orders Data Payload:", r?.data);
+        
         if (Array.isArray(r.data)) return r.data;
         if (Array.isArray(r.data?.data)) return r.data.data;
         if (Array.isArray(r.data?.orders)) return r.data.orders;
         if (Array.isArray(r.data?.results)) return r.data.results;
         return [];
+      })
+      .catch((err) => {
+        console.error("DEBUG - Orders API Error:", err);
+        return [];
       }),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
+});
 
-  // ─── Bookings Query with Fallback Target Array Detection ───────────────────
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ["bookings", "my"],
-    queryFn: () =>
-      api.get("/bookings/my").then((r) => {
+// ─── Bookings Query with Console Logger ───────────────────
+const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+  queryKey: ["bookings", "my"],
+  queryFn: () =>
+    api.get("/bookings/my")
+      .then((r) => {
+        console.log("DEBUG - Bookings Raw API Response:", r);
+        console.log("DEBUG - Bookings Data Payload:", r?.data);
+        
         if (Array.isArray(r.data)) return r.data;
         if (Array.isArray(r.data?.data)) return r.data.data;
         if (Array.isArray(r.data?.bookings)) return r.data.bookings;
         if (Array.isArray(r.data?.results)) return r.data.results;
         return [];
+      })
+      .catch((err) => {
+        console.error("DEBUG - Bookings API Error:", err);
+        return [];
       }),
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
+});
 
   const formatPrice = (price: string | number) => {
     return new Intl.NumberFormat("en-NG", {
