@@ -1,10 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -20,95 +18,102 @@ import {
   Package,
 } from "lucide-react";
 
+// ─── Types ────────────────────────────────────────────────────────
+interface CartProduct {
+  name:     string;
+  price:    string;
+  imageUrl: string;
+  sku:      string;
+}
+
+interface CartItem {
+  id:        number;
+  productId: number;
+  quantity:  number;
+  product:   CartProduct;
+}
+
+const CART_KEY = ["cart"];
+
 export default function Cart() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
-  const { data: cartItems, isLoading, refetch } = useQuery({
-    queryKey: ["cart"],
-    queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data),
+
+  // ── Fetch cart (only when authenticated) ──────────────────────
+  const { data: cartItems = [], isLoading } = useQuery<CartItem[]>({
+    queryKey: CART_KEY,
+    queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data ?? []),
+    enabled: isAuthenticated, // don't call API when not logged in
   });
 
+  // ── Update quantity — PATCH /cart/{id} ────────────────────────
   const updateQuantityMutation = useMutation({
     mutationFn: ({ id, quantity }: { id: number; quantity: number }) =>
       api.patch(`/cart/${id}`, { quantity }).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: CART_KEY });
     },
-    onError: () => {
-      toast.error("Failed to update quantity");
-    },
+    onError: () => toast.error("Failed to update quantity"),
   });
 
+  // ── Remove single item — DELETE /cart/{id} ────────────────────
   const removeItemMutation = useMutation({
-    mutationFn: ({ id }: { id: number }) =>
+    mutationFn: (id: number) =>
       api.delete(`/cart/${id}`).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
       toast.success("Item removed from cart");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: CART_KEY });
     },
-    onError: () => {
-      toast.error("Failed to remove item");
-    },
+    onError: () => toast.error("Failed to remove item"),
   });
 
+  // ── Clear entire cart — DELETE /cart ──────────────────────────
   const clearCartMutation = useMutation({
-    mutationFn: () => api.delete("/cart").then((r) => r.data?.data ?? r.data),
+    mutationFn: () =>
+      api.delete("/cart").then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
       toast.success("Cart cleared");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: CART_KEY });
     },
-    onError: () => {
-      toast.error("Failed to clear cart");
-    },
+    onError: () => toast.error("Failed to clear cart"),
   });
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
+  // ── Helpers ────────────────────────────────────────────────────
+  const formatPrice = (price: string | number) =>
+    new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
     }).format(typeof price === "string" ? parseFloat(price) : price);
-  };
 
-  // Demo cart items for display when not authenticated
-  const demoCartItems = [
+  // Demo items shown to unauthenticated visitors
+  const demoCartItems: CartItem[] = [
     {
-      id: 1,
-      productId: 1,
-      quantity: 2,
-      product: {
-        name: "Digital Pressure Gauge",
-        price: "85000.00",
-        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop",
-        sku: "DPG-100",
-      },
+      id: 1, productId: 1, quantity: 2,
+      product: { name: "Digital Pressure Gauge", price: "85000.00", sku: "DPG-100",
+        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop" },
     },
     {
-      id: 2,
-      productId: 2,
-      quantity: 1,
-      product: {
-        name: "RTD Temperature Sensor",
-        price: "45000.00",
-        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop",
-        sku: "RTD-PT100",
-      },
+      id: 2, productId: 2, quantity: 1,
+      product: { name: "RTD Temperature Sensor", price: "45000.00", sku: "RTD-PT100",
+        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop" },
     },
   ];
 
-  const displayItems = isAuthenticated ? (cartItems || []) : demoCartItems;
-  const subtotal = displayItems.reduce((sum: number, item: any) => {
-    return sum + parseFloat(item.product?.price || "0") * item.quantity;
-  }, 0);
+  const displayItems = isAuthenticated ? cartItems : demoCartItems;
+  const subtotal = displayItems.reduce(
+    (sum, item) => sum + parseFloat(item.product?.price || "0") * item.quantity, 0
+  );
   const shipping = subtotal > 100000 ? 0 : 5000;
-  const total = subtotal + shipping;
+  const total    = subtotal + shipping;
 
-  if (authLoading) {
+  // ── Loading state ──────────────────────────────────────────────
+  if (authLoading || (isAuthenticated && isLoading)) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </main>
         <Footer />
       </div>
@@ -118,7 +123,7 @@ export default function Cart() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         <section className="section">
           <div className="container">
@@ -145,7 +150,7 @@ export default function Cart() {
               </Card>
             ) : (
               <div className="grid lg:grid-cols-3 gap-8">
-                {/* Cart Items */}
+                {/* ── Cart Items ─────────────────────────────────── */}
                 <div className="lg:col-span-2 space-y-4">
                   {!isAuthenticated && (
                     <Card className="bg-yellow-50 border-yellow-200">
@@ -157,7 +162,7 @@ export default function Cart() {
                     </Card>
                   )}
 
-                  {displayItems.map((item: any) => (
+                  {displayItems.map((item) => (
                     <Card key={item.id}>
                       <CardContent className="p-6">
                         <div className="flex gap-6">
@@ -172,31 +177,30 @@ export default function Cart() {
                             <div className="flex justify-between">
                               <div>
                                 <h3 className="font-semibold">{item.product?.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  SKU: {item.product?.sku}
-                                </p>
+                                <p className="text-sm text-muted-foreground">SKU: {item.product?.sku}</p>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="text-muted-foreground hover:text-destructive"
-                                onClick={() => isAuthenticated && removeItemMutation.mutate({ id: item.id })}
-                                disabled={!isAuthenticated}
+                                onClick={() => isAuthenticated && removeItemMutation.mutate(item.id)}
+                                disabled={!isAuthenticated || removeItemMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
+
                             <div className="flex items-center justify-between mt-4">
                               <div className="flex items-center border rounded-md">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => isAuthenticated && updateQuantityMutation.mutate({
-                                    id: item.id,
-                                    quantity: Math.max(1, item.quantity - 1),
-                                  })}
-                                  disabled={item.quantity <= 1 || !isAuthenticated}
+                                  onClick={() =>
+                                    isAuthenticated &&
+                                    updateQuantityMutation.mutate({ id: item.id, quantity: Math.max(1, item.quantity - 1) })
+                                  }
+                                  disabled={item.quantity <= 1 || !isAuthenticated || updateQuantityMutation.isPending}
                                 >
                                   <Minus className="h-3 w-3" />
                                 </Button>
@@ -205,15 +209,16 @@ export default function Cart() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => isAuthenticated && updateQuantityMutation.mutate({
-                                    id: item.id,
-                                    quantity: item.quantity + 1,
-                                  })}
-                                  disabled={!isAuthenticated}
+                                  onClick={() =>
+                                    isAuthenticated &&
+                                    updateQuantityMutation.mutate({ id: item.id, quantity: item.quantity + 1 })
+                                  }
+                                  disabled={!isAuthenticated || updateQuantityMutation.isPending}
                                 >
                                   <Plus className="h-3 w-3" />
                                 </Button>
                               </div>
+
                               <div className="text-right">
                                 <p className="font-semibold text-primary">
                                   {formatPrice(parseFloat(item.product?.price || "0") * item.quantity)}
@@ -236,19 +241,19 @@ export default function Cart() {
                         Continue Shopping
                       </Button>
                     </Link>
-                    {isAuthenticated && (
+                    {isAuthenticated && displayItems.length > 0 && (
                       <Button
                         variant="outline"
                         onClick={() => clearCartMutation.mutate()}
                         disabled={clearCartMutation.isPending}
                       >
-                        Clear Cart
+                        {clearCartMutation.isPending ? "Clearing…" : "Clear Cart"}
                       </Button>
                     )}
                   </div>
                 </div>
 
-                {/* Order Summary */}
+                {/* ── Order Summary ──────────────────────────────── */}
                 <div>
                   <Card className="sticky top-24">
                     <CardHeader>
@@ -264,9 +269,7 @@ export default function Cart() {
                         <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                       </div>
                       {shipping === 0 && (
-                        <p className="text-xs text-green-600">
-                          Free shipping on orders over ₦100,000
-                        </p>
+                        <p className="text-xs text-green-600">Free shipping on orders over ₦100,000</p>
                       )}
                       <Separator />
                       <div className="flex justify-between text-lg font-semibold">
