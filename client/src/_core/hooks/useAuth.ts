@@ -1,4 +1,4 @@
-import { api, clearAuthToken, getStoredUser, setAuthToken } from "@/lib/api";
+import { api, clearAuthToken, setAuthToken } from "@/lib/api";
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -9,13 +9,27 @@ export interface SiteUser {
   email: string;
   phone?: string;
   company?: string;
-  role?: string;       // returned by /me and used in Dashboard
-  createdAt?: string;  // returned by /me and used in Dashboard
+  role?: string;
+  createdAt?: string;
 }
 
-interface LoginPayload  { email: string; password: string }
-interface SignupPayload { name: string; email: string; password: string; phone?: string; company?: string }
+interface LoginPayload   { email: string; password: string }
+interface SignupPayload  { name: string; email: string; password: string; phone?: string; company?: string }
 interface UpdateProfilePayload { name?: string; phone?: string; company?: string }
+
+// ─── API response shapes ──────────────────────────────────────────
+// /user/auth/login and /user/auth/register return { success, token, data: SiteUser }
+interface AuthResponse {
+  success: boolean;
+  token: string;
+  data: SiteUser;   // ← "data", NOT "user"
+}
+
+// /user/auth/me and PATCH /user/auth/me return { success, data: SiteUser }
+interface MeResponse {
+  success: boolean;
+  data: SiteUser;
+}
 
 // ─── Query key ───────────────────────────────────────────────────
 const ME_KEY = ["auth", "me"] as const;
@@ -39,45 +53,35 @@ export function useAuth(options?: UseAuthOptions) {
       const token = document.cookie.match(/(?:^|; )site_token=([^;]*)/)?.[1];
       if (!token) return null;
       try {
-        const { data } = await api.get<{ success: boolean; data: SiteUser }>(
-          "/user/auth/me"
-        );
+        const { data } = await api.get<MeResponse>("/user/auth/me");
         return data.data;
       } catch {
         clearAuthToken();
         return null;
       }
     },
-    // undefined instead of getStoredUser() so React Query shows loading:true
-    // while the /me fetch is in-flight, preventing premature "not authenticated"
     initialData: undefined,
-    staleTime: 1000 * 60 * 5, // cache for 5 mins — avoids refetch on every render
+    staleTime: 1000 * 60 * 5, // cache for 5 mins
     retry: false,
     refetchOnWindowFocus: false,
   });
 
   // ── Login ──────────────────────────────────────────────────────
   const login = useCallback(async (payload: LoginPayload) => {
-    const { data } = await api.post<{
-      success: boolean;
-      token: string;
-      user: SiteUser;
-    }>("/user/auth/login", payload);
-    setAuthToken(data.token, data.user);
-    queryClient.setQueryData(ME_KEY, data.user);
-    return data.user;
+    const { data } = await api.post<AuthResponse>("/user/auth/login", payload);
+    // API returns { success, token, data: SiteUser } — not "user"
+    setAuthToken(data.token, data.data);
+    queryClient.setQueryData(ME_KEY, data.data);
+    return data.data;
   }, [queryClient]);
 
   // ── Signup ─────────────────────────────────────────────────────
   const signup = useCallback(async (payload: SignupPayload) => {
-    const { data } = await api.post<{
-      success: boolean;
-      token: string;
-      user: SiteUser;
-    }>("/user/auth/register", payload);
-    setAuthToken(data.token, data.user);
-    queryClient.setQueryData(ME_KEY, data.user);
-    return data.user;
+    const { data } = await api.post<AuthResponse>("/user/auth/register", payload);
+    // Same shape as login
+    setAuthToken(data.token, data.data);
+    queryClient.setQueryData(ME_KEY, data.data);
+    return data.data;
   }, [queryClient]);
 
   // ── Logout ─────────────────────────────────────────────────────
@@ -91,10 +95,7 @@ export function useAuth(options?: UseAuthOptions) {
 
   // ── Update Profile ─────────────────────────────────────────────
   const updateProfile = useCallback(async (payload: UpdateProfilePayload) => {
-    const { data } = await api.patch<{ success: boolean; data: SiteUser }>(
-      "/user/auth/me",
-      payload
-    );
+    const { data } = await api.patch<MeResponse>("/user/auth/me", payload);
     queryClient.setQueryData(ME_KEY, data.data);
     return data.data;
   }, [queryClient]);
