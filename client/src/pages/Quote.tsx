@@ -89,16 +89,21 @@ export default function Quote() {
     }
 
     createQuoteMutation.mutate({
+      name: formData.customerName,
+      email: formData.customerEmail,
+      phone: formData.customerPhone || undefined,
+      company: formData.companyName || undefined,
       serviceType: formData.serviceType || undefined,
-      customerName: formData.customerName,
-      customerEmail: formData.customerEmail,
-      customerPhone: formData.customerPhone || undefined,
-      companyName: formData.companyName || undefined,
-      industry: formData.industry || undefined,
-      equipmentType: formData.equipmentType || undefined,
-      quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
-      budget: formData.budget || undefined,
-      description: formData.description || undefined,
+      urgency: formData.urgency || undefined,
+      description: [
+        formData.description,
+        formData.industry     ? `Industry: ${formData.industry}`           : "",
+        formData.equipmentType ? `Equipment: ${formData.equipmentType}`    : "",
+        formData.quantity     ? `Quantity: ${formData.quantity}`           : "",
+        formData.budget       ? `Budget: ${formData.budget}`               : "",
+      ]
+        .filter(Boolean)
+        .join("\n") || undefined,
     });
   };
 
@@ -246,9 +251,9 @@ export default function Quote() {
                                 <SelectValue placeholder="Select urgency" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="standard">Standard (5-7 days)</SelectItem>
-                                <SelectItem value="priority">Priority (2-3 days)</SelectItem>
-                                <SelectItem value="urgent">Urgent (24 hours)</SelectItem>
+                                <SelectItem value="low">Low — standard timeline</SelectItem>
+                                <SelectItem value="medium">Medium — priority</SelectItem>
+                                <SelectItem value="high">High — urgent (24 hrs)</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
