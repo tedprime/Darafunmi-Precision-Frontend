@@ -11,7 +11,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Package,
   Calendar,
-  FileText,
   ShoppingCart,
   User,
   Clock,
@@ -25,14 +24,34 @@ import {
 export default function Dashboard() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
 
-  const { data: orders, isLoading: ordersLoading } = useQuery({
+  // ─── Orders Query with Fallback Target Array Detection ─────────────────────
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["orders", "my"],
-    queryFn: () => api.get("/orders/my").then((r) => r.data?.data ?? r.data),
+    queryFn: () =>
+      api.get("/orders/my").then((r) => {
+        if (Array.isArray(r.data)) return r.data;
+        if (Array.isArray(r.data?.data)) return r.data.data;
+        if (Array.isArray(r.data?.orders)) return r.data.orders;
+        if (Array.isArray(r.data?.results)) return r.data.results;
+        return [];
+      }),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
-  const { data: bookings, isLoading: bookingsLoading } = useQuery({
+  // ─── Bookings Query with Fallback Target Array Detection ───────────────────
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ["bookings", "my"],
-    queryFn: () => api.get("/bookings/my").then((r) => r.data?.data ?? r.data),
+    queryFn: () =>
+      api.get("/bookings/my").then((r) => {
+        if (Array.isArray(r.data)) return r.data;
+        if (Array.isArray(r.data?.data)) return r.data.data;
+        if (Array.isArray(r.data?.bookings)) return r.data.bookings;
+        if (Array.isArray(r.data?.results)) return r.data.results;
+        return [];
+      }),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const formatPrice = (price: string | number) => {
@@ -112,6 +131,10 @@ export default function Dashboard() {
     );
   }
 
+  // Fallback structures array formatting to prevent parsing exceptions
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeBookings = Array.isArray(bookings) ? bookings : [];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -145,7 +168,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Stats — all driven by live API data */}
+            {/* Quick Stats Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {/* Total Orders */}
               <Card>
@@ -158,7 +181,7 @@ export default function Dashboard() {
                       {ordersLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
-                        <p className="text-2xl font-bold">{orders?.length ?? 0}</p>
+                        <p className="text-2xl font-bold">{safeOrders.length}</p>
                       )}
                       <p className="text-sm text-muted-foreground">Total Orders</p>
                     </div>
@@ -177,7 +200,7 @@ export default function Dashboard() {
                       {bookingsLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
-                        <p className="text-2xl font-bold">{bookings?.length ?? 0}</p>
+                        <p className="text-2xl font-bold">{safeBookings.length}</p>
                       )}
                       <p className="text-sm text-muted-foreground">Service Bookings</p>
                     </div>
@@ -185,7 +208,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* Completed — bookings with status completed or delivered */}
+              {/* Completed Stats Card */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -197,9 +220,9 @@ export default function Dashboard() {
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {bookings?.filter((b: any) =>
+                          {safeBookings.filter((b: any) =>
                             ["completed", "delivered"].includes(b.status)
-                          ).length ?? 0}
+                          ).length}
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground">Completed</p>
@@ -208,7 +231,7 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
 
-              {/* In Progress — bookings not yet completed or cancelled */}
+              {/* In Progress Stats Card */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -220,9 +243,9 @@ export default function Dashboard() {
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {bookings?.filter((b: any) =>
+                          {safeBookings.filter((b: any) =>
                             ["pending", "confirmed", "processing"].includes(b.status)
-                          ).length ?? 0}
+                          ).length}
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground">In Progress</p>
@@ -232,7 +255,7 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            {/* Tabs */}
+            {/* Content Tabs Navigation */}
             <Tabs defaultValue="orders" className="space-y-6">
               <TabsList>
                 <TabsTrigger value="orders" className="gap-2">
@@ -249,7 +272,7 @@ export default function Dashboard() {
                 </TabsTrigger>
               </TabsList>
 
-              {/* Orders Tab */}
+              {/* Orders Tab View */}
               <TabsContent value="orders">
                 <Card>
                   <CardHeader>
@@ -261,9 +284,9 @@ export default function Dashboard() {
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                       </div>
-                    ) : orders && orders.length > 0 ? (
+                    ) : safeOrders.length > 0 ? (
                       <div className="space-y-4">
-                        {orders.map((order: any) => (
+                        {safeOrders.map((order: any) => (
                           <div
                             key={order.id}
                             className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg"
@@ -307,7 +330,7 @@ export default function Dashboard() {
                 </Card>
               </TabsContent>
 
-              {/* Bookings Tab */}
+              {/* Bookings Tab View */}
               <TabsContent value="bookings">
                 <Card>
                   <CardHeader>
@@ -319,9 +342,9 @@ export default function Dashboard() {
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                       </div>
-                    ) : bookings && bookings.length > 0 ? (
+                    ) : safeBookings.length > 0 ? (
                       <div className="space-y-4">
-                        {bookings.map((booking: any) => (
+                        {safeBookings.map((booking: any) => (
                           <div
                             key={booking.id}
                             className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg"
@@ -366,7 +389,7 @@ export default function Dashboard() {
                 </Card>
               </TabsContent>
 
-              {/* Account Tab */}
+              {/* Account Tab View */}
               <TabsContent value="account">
                 <Card>
                   <CardHeader>

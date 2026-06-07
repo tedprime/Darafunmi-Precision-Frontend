@@ -38,15 +38,15 @@ const timeSlots = [
   "02:00 PM", "03:00 PM", "04:00 PM",
 ];
 
-// ─── API payload — matches DB columns exactly ─────────────────────
+// ─── API payload — field names matching the backend DB columns ────
 interface BookingPayload {
-  serviceId?:        number;
-  scheduledDate?:    string;
+  serviceType?:      string;  // service name string, not ID
+  preferredDate?:    string;  // backend uses preferredDate
   scheduledTime?:    string;
-  customerName:      string;
-  customerEmail:     string;
-  customerPhone?:    string;
-  companyName?:      string;
+  name:              string;  // backend uses name, not customerName
+  email:             string;  // backend uses email
+  phone?:            string;  // backend uses phone
+  company?:          string;  // backend uses company
   serviceLocation?:  string;
   equipmentDetails?: string;
   notes?:            string;
@@ -58,12 +58,12 @@ export default function BookService() {
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
-    scheduledDate:    "",
+    preferredDate:    "",
     scheduledTime:    "",
-    customerName:     user?.name    ?? "",
-    customerEmail:    user?.email   ?? "",
-    customerPhone:    user?.phone   ?? "",
-    companyName:      user?.company ?? "",
+    name:             user?.name    ?? "",
+    email:            user?.email   ?? "",
+    phone:            user?.phone   ?? "",
+    company:          user?.company ?? "",
     serviceLocation:  "",
     equipmentDetails: "",
     notes:            "",
@@ -89,19 +89,20 @@ export default function BookService() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedService) { toast.error("Please select a service"); return; }
-    if (!formData.customerName || !formData.customerEmail) {
+    if (!formData.name || !formData.email) {
       toast.error("Name and email are required");
       return;
     }
 
+    const serviceName = services.find((s) => s.id === selectedService)?.name;
     createBookingMutation.mutate({
-      serviceId:        selectedService,
-      scheduledDate:    formData.scheduledDate    || undefined,
+      serviceType:      serviceName,
+      preferredDate:    formData.preferredDate    || undefined,
       scheduledTime:    formData.scheduledTime    || undefined,
-      customerName:     formData.customerName,
-      customerEmail:    formData.customerEmail,
-      customerPhone:    formData.customerPhone    || undefined,
-      companyName:      formData.companyName      || undefined,
+      name:             formData.name,
+      email:            formData.email,
+      phone:            formData.phone            || undefined,
+      company:          formData.company          || undefined,
       serviceLocation:  formData.serviceLocation  || undefined,
       equipmentDetails: formData.equipmentDetails || undefined,
       notes:            formData.notes            || undefined,
@@ -204,18 +205,18 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="scheduledDate">
+                      <Label htmlFor="preferredDate">
                         Preferred Date <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          id="scheduledDate"
+                          id="preferredDate"
                           type="date"
                           className="pl-10"
-                          value={formData.scheduledDate}
+                          value={formData.preferredDate}
                           min={new Date().toISOString().split("T")[0]}
-                          onChange={(e) => handleChange("scheduledDate", e.target.value)}
+                          onChange={(e) => handleChange("preferredDate", e.target.value)}
                           required
                         />
                       </div>
@@ -270,7 +271,7 @@ export default function BookService() {
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.scheduledDate}>
+                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.preferredDate}>
                       Continue
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -296,10 +297,10 @@ export default function BookService() {
                             <span>{selectedServiceData.name}</span>
                           </div>
                         )}
-                        {formData.scheduledDate && (
+                        {formData.preferredDate && (
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-primary" />
-                            <span>{new Date(formData.scheduledDate).toLocaleDateString()}</span>
+                            <span>{new Date(formData.preferredDate).toLocaleDateString()}</span>
                           </div>
                         )}
                         {formData.scheduledTime && (
@@ -314,27 +315,27 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="customerName">
+                      <Label htmlFor="name">
                         Full Name <span className="text-destructive">*</span>
                       </Label>
                       <Input
-                        id="customerName"
+                        id="name"
                         placeholder="John Doe"
-                        value={formData.customerName}
-                        onChange={(e) => handleChange("customerName", e.target.value)}
+                        value={formData.name}
+                        onChange={(e) => handleChange("name", e.target.value)}
                         required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="customerEmail">
+                      <Label htmlFor="email">
                         Email Address <span className="text-destructive">*</span>
                       </Label>
                       <Input
-                        id="customerEmail"
+                        id="email"
                         type="email"
                         placeholder="john@example.com"
-                        value={formData.customerEmail}
-                        onChange={(e) => handleChange("customerEmail", e.target.value)}
+                        value={formData.email}
+                        onChange={(e) => handleChange("email", e.target.value)}
                         required
                       />
                     </div>
@@ -342,21 +343,21 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="customerPhone">Phone Number</Label>
+                      <Label htmlFor="phone">Phone Number</Label>
                       <Input
-                        id="customerPhone"
+                        id="phone"
                         placeholder="+234 xxx xxx xxxx"
-                        value={formData.customerPhone}
-                        onChange={(e) => handleChange("customerPhone", e.target.value)}
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="companyName">Company Name</Label>
+                      <Label htmlFor="company">Company Name</Label>
                       <Input
-                        id="companyName"
+                        id="company"
                         placeholder="Your Company"
-                        value={formData.companyName}
-                        onChange={(e) => handleChange("companyName", e.target.value)}
+                        value={formData.company}
+                        onChange={(e) => handleChange("company", e.target.value)}
                       />
                     </div>
                   </div>
