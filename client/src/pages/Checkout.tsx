@@ -137,6 +137,7 @@ export default function Checkout() {
     }
 
     const orderData = {
+       siteUserId: user?.id,        // ← add this
       items: displayItems.map((item: any) => ({
         productId: item.productId,
         quantity: item.quantity,
