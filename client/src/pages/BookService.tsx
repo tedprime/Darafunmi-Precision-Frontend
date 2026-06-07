@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +25,6 @@ import {
   Target,
 } from "lucide-react";
 
-// ─── Services (numeric IDs matching the backend service_id column) ─
 const services = [
   { id: 1, name: "Calibration Services",  icon: Microscope,    description: "ISO-compliant calibration for laboratory and medical equipment" },
   { id: 2, name: "Maintenance & Repair",   icon: Wrench,        description: "Comprehensive maintenance and repair services" },
@@ -38,15 +37,14 @@ const timeSlots = [
   "02:00 PM", "03:00 PM", "04:00 PM",
 ];
 
-// ─── Corrected API Payload Fields to match Backend DB Structure ───
 interface BookingPayload {
   booking_number:    string;
-  service_id:        number; // Mandatory column relation field
+  service_id:        number;
   site_user_id?:     number;
   status:            string;
-  scheduled_date:    string; // Corrected field mapping from preferredDate
+  scheduled_date:    string;
   scheduled_time?:   string;
-  customer_name:     string; // Matching database mapping string configurations
+  customer_name:     string;
   customer_email:    string;
   customer_phone?:   string;
   company_name?:     string;
@@ -64,22 +62,33 @@ export default function BookService() {
   const [formData, setFormData] = useState({
     scheduledDate:    "",
     scheduledTime:    "",
-    name:             user?.name    ?? "",
-    email:            user?.email   ?? "",
-    phone:            user?.phone   ?? "",
-    company:          user?.company ?? "",
+    name:             "",
+    email:            "",
+    phone:            "",
+    company:          "",
     serviceLocation:  "",
     equipmentDetails: "",
     notes:            "",
   });
 
-  // ── Mutation ───────────────────────────────────────────────────
+  // Proactive Syncing Effect: Automatically fill name and email as soon as authentication profile loads
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name:  prev.name  || user.name  || "",
+        email: prev.email || user.email || "",
+        phone: prev.phone || user.phone || "",
+        company: prev.company || user.company || "",
+      }));
+    }
+  }, [user]);
+
   const createBookingMutation = useMutation({
     mutationFn: (payload: BookingPayload) =>
       api.post("/bookings", payload).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Booking submitted successfully!");
-      // Fallback redirection to keep the workflow reliable
       const bNum = data?.booking_number || data?.bookingNumber;
       if (bNum) {
         setLocation(`/booking-confirmation/${bNum}`);
@@ -99,6 +108,7 @@ export default function BookService() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!selectedService) { 
       toast.error("Please select a service"); 
       return; 
@@ -112,12 +122,11 @@ export default function BookService() {
       return;
     }
 
-    // Explicit compilation build array sequence satisfying NOT NULL constraints
     const generatedBookingNumber = `BK-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
 
-    createBookingMutation.mutate({
+    const submissionPayload: BookingPayload = {
       booking_number:    generatedBookingNumber,
-      service_id:        Number(selectedService), // Crucial fix: passing valid numerical index ID
+      service_id:        Number(selectedService),
       site_user_id:      user?.id ? Number(user.id) : undefined,
       status:            "pending",
       scheduled_date:    formData.scheduledDate,
@@ -129,7 +138,9 @@ export default function BookService() {
       service_location:  formData.serviceLocation  || undefined,
       equipment_details: formData.equipmentDetails || undefined,
       notes:             formData.notes            || undefined,
-    });
+    };
+
+    createBookingMutation.mutate(submissionPayload);
   };
 
   const selectedServiceData = services.find((s) => s.id === selectedService);
@@ -139,7 +150,6 @@ export default function BookService() {
       <Header />
 
       <main className="flex-1">
-        {/* Hero */}
         <section className="relative gradient-hero py-16 md:py-20">
           <div className="container">
             <div className="max-w-3xl">
@@ -155,7 +165,6 @@ export default function BookService() {
           </div>
         </section>
 
-        {/* Booking Form */}
         <section className="section">
           <div className="container max-w-4xl">
             {/* Progress Steps */}
@@ -175,7 +184,7 @@ export default function BookService() {
             </div>
 
             <form onSubmit={handleSubmit}>
-              {/* ── Step 1: Select Service ─────────────────────── */}
+              {/* Step 1: Select Service */}
               {step === 1 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -218,7 +227,7 @@ export default function BookService() {
                 </div>
               )}
 
-              {/* ── Step 2: Schedule ───────────────────────────── */}
+              {/* Step 2: Schedule */}
               {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -302,7 +311,7 @@ export default function BookService() {
                 </div>
               )}
 
-              {/* ── Step 3: Contact Info ───────────────────────── */}
+              {/* Step 3: Contact Info & Auto-fill Summary */}
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -310,7 +319,6 @@ export default function BookService() {
                     <p className="text-muted-foreground">Confirm your contact details</p>
                   </div>
 
-                  {/* Booking summary */}
                   <Card className="bg-muted/30 mb-6">
                     <CardContent className="p-4">
                       <div className="flex flex-wrap gap-4 text-sm">
@@ -408,7 +416,6 @@ export default function BookService() {
           </div>
         </section>
 
-        {/* Contact CTA */}
         <section className="section bg-muted/30">
           <div className="container">
             <Card className="gradient-cta text-white overflow-hidden">
