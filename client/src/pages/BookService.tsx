@@ -71,14 +71,14 @@ export default function BookService() {
     notes:            "",
   });
 
-  // Proactive Syncing Effect: Automatically fill name and email as soon as authentication profile loads
+  // Automatically track, map and auto-fill user account profile values on mount
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({
         ...prev,
-        name:  prev.name  || user.name  || "",
-        email: prev.email || user.email || "",
-        phone: prev.phone || user.phone || "",
+        name:    prev.name    || user.name    || "",
+        email:   prev.email   || user.email   || "",
+        phone:   prev.phone   || user.phone   || "",
         company: prev.company || user.company || "",
       }));
     }
@@ -106,19 +106,22 @@ export default function BookService() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Safe manual compilation function preventing detached layout exceptions
+  const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedService) { 
-      toast.error("Please select a service"); 
+      toast.error("Please select a service in Step 1"); 
+      setStep(1);
       return; 
     }
-    if (!formData.name || !formData.email) {
-      toast.error("Name and email are required");
+    if (!formData.scheduledDate) {
+      toast.error("An appointment date is required in Step 2");
+      setStep(2);
       return;
     }
-    if (!formData.scheduledDate) {
-      toast.error("An appointment date is required");
+    if (!formData.name || !formData.email) {
+      toast.error("Name and email are required fields");
       return;
     }
 
@@ -167,7 +170,7 @@ export default function BookService() {
 
         <section className="section">
           <div className="container max-w-4xl">
-            {/* Progress Steps */}
+            {/* Progress Steps Indicators */}
             <div className="flex items-center justify-center gap-4 mb-12">
               {[1, 2, 3].map((s) => (
                 <div key={s} className="flex items-center">
@@ -183,7 +186,8 @@ export default function BookService() {
               ))}
             </div>
 
-            <form onSubmit={handleSubmit}>
+            {/* Changed from <form> container wrapper to prevent unexpected native submissions */}
+            <div className="space-y-6">
               {/* Step 1: Select Service */}
               {step === 1 && (
                 <div className="space-y-6">
@@ -227,7 +231,7 @@ export default function BookService() {
                 </div>
               )}
 
-              {/* Step 2: Schedule */}
+              {/* Step 2: Schedule Options */}
               {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -249,7 +253,6 @@ export default function BookService() {
                           value={formData.scheduledDate}
                           min={new Date().toISOString().split("T")[0]}
                           onChange={(e) => handleChange("scheduledDate", e.target.value)}
-                          required
                         />
                       </div>
                     </div>
@@ -311,7 +314,7 @@ export default function BookService() {
                 </div>
               )}
 
-              {/* Step 3: Contact Info & Auto-fill Summary */}
+              {/* Step 3: Auto-filled Contact Fields & Trigger Submit */}
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -354,7 +357,6 @@ export default function BookService() {
                         placeholder="John Doe"
                         value={formData.name}
                         onChange={(e) => handleChange("name", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -367,7 +369,6 @@ export default function BookService() {
                         placeholder="john@example.com"
                         value={formData.email}
                         onChange={(e) => handleChange("email", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -406,13 +407,17 @@ export default function BookService() {
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(2)}>Back</Button>
-                    <Button type="submit" disabled={createBookingMutation.isPending}>
+                    <Button 
+                      type="button" 
+                      onClick={handleFinalSubmit} 
+                      disabled={createBookingMutation.isPending}
+                    >
                       {createBookingMutation.isPending ? "Submitting…" : "Submit Booking"}
                     </Button>
                   </div>
                 </div>
               )}
-            </form>
+            </div>
           </div>
         </section>
 
