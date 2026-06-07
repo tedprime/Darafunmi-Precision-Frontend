@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
-import { Link } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,27 +38,31 @@ const timeSlots = [
   "02:00 PM", "03:00 PM", "04:00 PM",
 ];
 
-// ─── API payload — field names matching the backend DB columns ────
+// ─── Corrected API Payload Fields to match Backend DB Structure ───
 interface BookingPayload {
-  serviceType?:      string;  // service name string, not ID
-  preferredDate?:    string;  // backend uses preferredDate
-  scheduledTime?:    string;
-  name:              string;  // backend uses name, not customerName
-  email:             string;  // backend uses email
-  phone?:            string;  // backend uses phone
-  company?:          string;  // backend uses company
-  serviceLocation?:  string;
-  equipmentDetails?: string;
+  booking_number:    string;
+  service_id:        number; // Mandatory column relation field
+  site_user_id?:     number;
+  status:            string;
+  scheduled_date:    string; // Corrected field mapping from preferredDate
+  scheduled_time?:   string;
+  customer_name:     string; // Matching database mapping string configurations
+  customer_email:    string;
+  customer_phone?:   string;
+  company_name?:     string;
+  service_location?: string;
+  equipment_details?: string;
   notes?:            string;
 }
 
 export default function BookService() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
-    preferredDate:    "",
+    scheduledDate:    "",
     scheduledTime:    "",
     name:             user?.name    ?? "",
     email:            user?.email   ?? "",
@@ -75,10 +79,17 @@ export default function BookService() {
       api.post("/bookings", payload).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Booking submitted successfully!");
-      window.location.href = `/booking-confirmation/${data.bookingNumber}`;
+      // Fallback redirection to keep the workflow reliable
+      const bNum = data?.booking_number || data?.bookingNumber;
+      if (bNum) {
+        setLocation(`/booking-confirmation/${bNum}`);
+      } else {
+        setLocation("/dashboard");
+      }
     },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to submit booking");
+    onError: (error: any) => {
+      console.error("Booking submission failure details:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Failed to submit booking");
     },
   });
 
@@ -88,24 +99,36 @@ export default function BookService() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedService) { toast.error("Please select a service"); return; }
+    if (!selectedService) { 
+      toast.error("Please select a service"); 
+      return; 
+    }
     if (!formData.name || !formData.email) {
       toast.error("Name and email are required");
       return;
     }
+    if (!formData.scheduledDate) {
+      toast.error("An appointment date is required");
+      return;
+    }
 
-    const serviceName = services.find((s) => s.id === selectedService)?.name;
+    // Explicit compilation build array sequence satisfying NOT NULL constraints
+    const generatedBookingNumber = `BK-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
+
     createBookingMutation.mutate({
-      serviceType:      serviceName,
-      preferredDate:    formData.preferredDate    || undefined,
-      scheduledTime:    formData.scheduledTime    || undefined,
-      name:             formData.name,
-      email:            formData.email,
-      phone:            formData.phone            || undefined,
-      company:          formData.company          || undefined,
-      serviceLocation:  formData.serviceLocation  || undefined,
-      equipmentDetails: formData.equipmentDetails || undefined,
-      notes:            formData.notes            || undefined,
+      booking_number:    generatedBookingNumber,
+      service_id:        Number(selectedService), // Crucial fix: passing valid numerical index ID
+      site_user_id:      user?.id ? Number(user.id) : undefined,
+      status:            "pending",
+      scheduled_date:    formData.scheduledDate,
+      scheduled_time:    formData.scheduledTime    || undefined,
+      customer_name:     formData.name,
+      customer_email:    formData.email,
+      customer_phone:    formData.phone            || undefined,
+      company_name:      formData.company          || undefined,
+      service_location:  formData.serviceLocation  || undefined,
+      equipment_details: formData.equipmentDetails || undefined,
+      notes:             formData.notes            || undefined,
     });
   };
 
@@ -205,18 +228,18 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="preferredDate">
+                      <Label htmlFor="scheduledDate">
                         Preferred Date <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          id="preferredDate"
+                          id="scheduledDate"
                           type="date"
                           className="pl-10"
-                          value={formData.preferredDate}
+                          value={formData.scheduledDate}
                           min={new Date().toISOString().split("T")[0]}
-                          onChange={(e) => handleChange("preferredDate", e.target.value)}
+                          onChange={(e) => handleChange("scheduledDate", e.target.value)}
                           required
                         />
                       </div>
@@ -271,7 +294,7 @@ export default function BookService() {
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
-                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.preferredDate}>
+                    <Button type="button" onClick={() => setStep(3)} disabled={!formData.scheduledDate}>
                       Continue
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -297,10 +320,10 @@ export default function BookService() {
                             <span>{selectedServiceData.name}</span>
                           </div>
                         )}
-                        {formData.preferredDate && (
+                        {formData.scheduledDate && (
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-primary" />
-                            <span>{new Date(formData.preferredDate).toLocaleDateString()}</span>
+                            <span>{new Date(formData.scheduledDate).toLocaleDateString()}</span>
                           </div>
                         )}
                         {formData.scheduledTime && (
