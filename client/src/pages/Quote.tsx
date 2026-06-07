@@ -89,21 +89,17 @@ export default function Quote() {
     }
 
     createQuoteMutation.mutate({
-      name: formData.customerName,
-      email: formData.customerEmail,
-      phone: formData.customerPhone || undefined,
-      company: formData.companyName || undefined,
       serviceType: formData.serviceType || undefined,
+      customerName: formData.customerName,
+      customerEmail: formData.customerEmail,
+      customerPhone: formData.customerPhone || undefined,
+      companyName: formData.companyName || undefined,
+      industry: formData.industry || undefined,
+      equipmentType: formData.equipmentType || undefined,
+      quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
+      budget: formData.budget || undefined,
       urgency: formData.urgency || undefined,
-      description: [
-        formData.description,
-        formData.industry     ? `Industry: ${formData.industry}`           : "",
-        formData.equipmentType ? `Equipment: ${formData.equipmentType}`    : "",
-        formData.quantity     ? `Quantity: ${formData.quantity}`           : "",
-        formData.budget       ? `Budget: ${formData.budget}`               : "",
-      ]
-        .filter(Boolean)
-        .join("\n") || undefined,
+      description: formData.description || undefined,
     });
   };
 
