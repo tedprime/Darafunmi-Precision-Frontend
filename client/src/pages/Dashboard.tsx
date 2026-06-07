@@ -154,7 +154,7 @@ export default function Dashboard() {
                       <Package className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{ordersLoading ? <span className="animate-pulse text-muted-foreground">—</span> : (orders?.length ?? 0)}</p>
+                      <p className="text-2xl font-bold">{orders?.length || 0}</p>
                       <p className="text-sm text-muted-foreground">Total Orders</p>
                     </div>
                   </div>
@@ -167,7 +167,7 @@ export default function Dashboard() {
                       <Calendar className="h-6 w-6 text-secondary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{bookingsLoading ? <span className="animate-pulse text-muted-foreground">—</span> : (bookings?.length ?? 0)}</p>
+                      <p className="text-2xl font-bold">{bookings?.length || 0}</p>
                       <p className="text-sm text-muted-foreground">Service Bookings</p>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">
-                        {bookingsLoading ? <span className="animate-pulse text-muted-foreground">—</span> : (bookings?.filter((b: any) => b.status === "completed").length ?? 0)}
+                        {orders?.filter((o: any) => o.status === "delivered").length || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">Completed</p>
                     </div>
@@ -196,7 +196,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">
-                        {bookingsLoading ? <span className="animate-pulse text-muted-foreground">—</span> : (bookings?.filter((b: any) => ["pending", "confirmed"].includes(b.status)).length ?? 0)}
+                        {orders?.filter((o: any) => ["pending", "processing", "shipped"].includes(o.status)).length || 0}
                       </p>
                       <p className="text-sm text-muted-foreground">In Progress</p>
                     </div>
