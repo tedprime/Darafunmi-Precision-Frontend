@@ -23,6 +23,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import {
   Menu,
   Phone,
@@ -30,41 +32,53 @@ import {
   Search,
   ShoppingCart,
   User,
-  ChevronDown,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const services = [
-  { title: "Calibration Services", href: "/services/calibration", description: "ISO-compliant calibration for laboratory and medical equipment" },
-  { title: "Maintenance & Repair", href: "/services/maintenance", description: "Routine maintenance and repair services" },
-  { title: "Training Programs", href: "/services/training", description: "Technical training for equipment operation" },
-  { title: "Consulting Services", href: "/services/consulting", description: "Process optimization and compliance consulting" },
+  { title: "Calibration Services",  href: "/services/calibration", description: "ISO-compliant calibration for laboratory and medical equipment" },
+  { title: "Maintenance & Repair",  href: "/services/maintenance",  description: "Routine maintenance and repair services" },
+  { title: "Training Programs",     href: "/services/training",     description: "Technical training for equipment operation" },
+  { title: "Consulting Services",   href: "/services/consulting",   description: "Process optimization and compliance consulting" },
 ];
 
 const industries = [
   { title: "Pharmaceutical", href: "/industries/pharmaceutical" },
-  { title: "Manufacturing", href: "/industries/manufacturing" },
-  { title: "Oil and Gas", href: "/industries/oil-and-gas" },
-  { title: "Marine", href: "/industries/marine" },
-  { title: "Beverages", href: "/industries/beverages" },
-  { title: "Packaging", href: "/industries/packaging" },
+  { title: "Manufacturing",  href: "/industries/manufacturing"  },
+  { title: "Oil and Gas",    href: "/industries/oil-and-gas"    },
+  { title: "Marine",         href: "/industries/marine"         },
+  { title: "Beverages",      href: "/industries/beverages"      },
+  { title: "Packaging",      href: "/industries/packaging"      },
 ];
 
 const resources = [
-  { title: "Blog & News", href: "/blog" },
-  { title: "Case Studies", href: "/case-studies" },
-  { title: "Downloads", href: "/resources" },
+  { title: "Blog & News",   href: "/blog"         },
+  { title: "Case Studies",  href: "/case-studies" },
+  { title: "Downloads",     href: "/resources"    },
 ];
+
+// ─── Cart count hook ──────────────────────────────────────────────
+// Reuses the same ["cart"] query key as Cart.tsx so they share cache
+function useCartCount() {
+  const { isAuthenticated } = useAuth();
+  const { data: cartItems = [] } = useQuery<any[]>({
+    queryKey: ["cart"],
+    queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data ?? []),
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60, // 1 min — keeps badge in sync without over-fetching
+  });
+  return cartItems.reduce((sum: number, item: any) => sum + (item.quantity ?? 0), 0);
+}
 
 export default function Header() {
   const [location] = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const cartCount = useCartCount();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      {/* Top bar with contact info */}
+      {/* Top bar */}
       <div className="hidden md:block bg-primary text-primary-foreground">
         <div className="container flex items-center justify-between py-2 text-sm">
           <div className="flex items-center gap-6">
@@ -163,11 +177,11 @@ export default function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Industries</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[300px] gap-2 p-4">
+                  <ul className="grid w-[200px] gap-1 p-3">
                     {industries.map((industry) => (
                       <li key={industry.title}>
                         <Link href={industry.href}>
-                          <NavigationMenuLink className="block select-none rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm">
+                          <NavigationMenuLink className="block select-none rounded-md p-2 text-sm leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                             {industry.title}
                           </NavigationMenuLink>
                         </Link>
@@ -180,11 +194,11 @@ export default function Header() {
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[200px] gap-2 p-4">
+                  <ul className="grid w-[200px] gap-1 p-3">
                     {resources.map((resource) => (
                       <li key={resource.title}>
                         <Link href={resource.href}>
-                          <NavigationMenuLink className="block select-none rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm">
+                          <NavigationMenuLink className="block select-none rounded-md p-2 text-sm leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                             {resource.title}
                           </NavigationMenuLink>
                         </Link>
@@ -212,10 +226,16 @@ export default function Header() {
             <Button variant="ghost" size="icon" className="hidden md:flex">
               <Search className="h-5 w-5" />
             </Button>
-            
+
+            {/* Cart icon with live badge */}
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
+                {isAuthenticated && cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
               </Button>
             </Link>
 
@@ -247,21 +267,19 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[380px] flex flex-col p-0 overflow-y-auto">
-                {/* Sheet header */}
                 <div className="px-6 py-5 border-b">
                   <SheetHeader>
                     <SheetTitle className="text-left text-base font-semibold">Navigation</SheetTitle>
                   </SheetHeader>
                 </div>
 
-                {/* Nav links */}
                 <nav className="flex-1 px-6 py-4 flex flex-col gap-1">
                   {[
-                    { label: "Home", href: "/" },
-                    { label: "About Us", href: "/about" },
-                    { label: "Products", href: "/products" },
-                    { label: "Blog", href: "/blog" },
-                    { label: "Contact", href: "/contact" },
+                    { label: "Home",     href: "/"        },
+                    { label: "About Us", href: "/about"   },
+                    { label: "Products", href: "/products"},
+                    { label: "Blog",     href: "/blog"    },
+                    { label: "Contact",  href: "/contact" },
                   ].map(({ label, href }) => (
                     <Link key={href} href={href} onClick={() => setMobileMenuOpen(false)}>
                       <span className={cn(
@@ -273,7 +291,6 @@ export default function Header() {
                     </Link>
                   ))}
 
-                  {/* Services accordion */}
                   <Accordion type="single" collapsible className="w-full">
                     <AccordionItem value="services" className="border-none">
                       <AccordionTrigger className="px-3 py-2.5 text-sm font-medium rounded-md hover:bg-accent hover:no-underline [&[data-state=open]]:bg-accent">
@@ -311,7 +328,6 @@ export default function Header() {
                   </Accordion>
                 </nav>
 
-                {/* CTA buttons */}
                 <div className="px-6 py-4 border-t flex flex-col gap-3">
                   {isAuthenticated ? (
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
@@ -329,7 +345,6 @@ export default function Header() {
                   </Link>
                 </div>
 
-                {/* Contact info footer */}
                 <div className="px-6 py-4 border-t bg-muted/30">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-3">Get in touch</p>
                   <div className="flex flex-col gap-2">

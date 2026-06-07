@@ -43,7 +43,8 @@ export default function Cart() {
   const { data: cartItems = [], isLoading } = useQuery<CartItem[]>({
     queryKey: CART_KEY,
     queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data ?? []),
-    enabled: isAuthenticated, // don't call API when not logged in
+    enabled: isAuthenticated,
+    refetchOnMount: true, // always fetch fresh data when navigating to cart
   });
 
   // ── Update quantity — PATCH /cart/{id} ────────────────────────
