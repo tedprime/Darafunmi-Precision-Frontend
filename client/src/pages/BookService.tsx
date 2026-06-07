@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,6 @@ interface BookingPayload {
 }
 
 export default function BookService() {
-  const [, navigate] = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<number | null>(null);
@@ -76,7 +75,7 @@ export default function BookService() {
       api.post("/bookings", payload).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Booking submitted successfully!");
-      navigate(`/booking-confirmation/${data.bookingNumber}`);
+      window.location.href = `/booking-confirmation/${data.bookingNumber}`;
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to submit booking");

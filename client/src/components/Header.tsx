@@ -65,8 +65,7 @@ function useCartCount() {
     queryKey: ["cart"],
     queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data ?? []),
     enabled: isAuthenticated,
-    // No staleTime here — we want the badge to instantly reflect
-    // invalidateQueries calls from Cart, Checkout, and ProductDetail
+    // No staleTime — badge must reflect refetchQueries calls immediately
   });
   return cartItems.reduce((sum: number, item: any) => sum + (item.quantity ?? 0), 0);
 }

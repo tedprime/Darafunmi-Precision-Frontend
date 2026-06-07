@@ -45,9 +45,7 @@ export default function ProductDetail() {
       api.post("/cart", data).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
       toast.success(`${quantity} item(s) added to cart!`);
-      // Invalidate the shared ["cart"] query so Header badge and Cart page
-      // both update immediately without needing a page refresh
-      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.refetchQueries({ queryKey: ["cart"] });
     },
     onError: () => {
       toast.error("Failed to add product to cart");

@@ -58,10 +58,12 @@ export default function Checkout() {
       api.post("/orders", data).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Order placed successfully!");
+      // Refetch cart so badge clears immediately across all components
+      queryClient.refetchQueries({ queryKey: ["cart"] });
       navigate(`/order-confirmation/${data.orderNumber}`);
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to place order");
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error.message || "Failed to place order");
     },
   });
 

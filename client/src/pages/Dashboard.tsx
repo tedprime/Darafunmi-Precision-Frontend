@@ -145,8 +145,9 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Quick Stats */}
+            {/* Quick Stats — all driven by live API data */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {/* Total Orders */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -164,6 +165,8 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Total Bookings */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -181,6 +184,8 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Completed — bookings with status completed or delivered */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -188,12 +193,12 @@ export default function Dashboard() {
                       <CheckCircle2 className="h-6 w-6 text-green-500" />
                     </div>
                     <div>
-                      {ordersLoading ? (
+                      {bookingsLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {orders?.filter((o: any) =>
-                            ["delivered", "completed"].includes(o.status)
+                          {bookings?.filter((b: any) =>
+                            ["completed", "delivered"].includes(b.status)
                           ).length ?? 0}
                         </p>
                       )}
@@ -202,6 +207,8 @@ export default function Dashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* In Progress — bookings not yet completed or cancelled */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -209,12 +216,12 @@ export default function Dashboard() {
                       <Clock className="h-6 w-6 text-amber-500" />
                     </div>
                     <div>
-                      {ordersLoading ? (
+                      {bookingsLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {orders?.filter((o: any) =>
-                            ["pending", "confirmed", "processing", "shipped"].includes(o.status)
+                          {bookings?.filter((b: any) =>
+                            ["pending", "confirmed", "processing"].includes(b.status)
                           ).length ?? 0}
                         </p>
                       )}
