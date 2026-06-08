@@ -17,21 +17,11 @@ export interface ShippingAddress {
   postalCode?: string;
 }
 
+// POST /orders only needs addresses + notes.
+// The backend reads cart items from the authenticated user's cart.
 export interface CreateOrderPayload {
-  // User identity — sent under every field name the backend might check
-  siteUserId?: number;
-  userId?: number;
-  user_id?: number;
-  site_user_id?: number;
-
-  // Order details
-  items: OrderItem[];
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
   shippingAddress: ShippingAddress;
   billingAddress?: ShippingAddress;
-  paymentMethod?: string;
   notes?: string;
 }
 

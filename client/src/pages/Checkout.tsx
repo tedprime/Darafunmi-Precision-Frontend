@@ -124,28 +124,9 @@ export default function Checkout() {
       : formData.billingAddress;
 
     createOrderMutation.mutate({
-      // Send user ID under every field name the backend might check
-      siteUserId:   user?.id,
-      userId:       user?.id,
-      user_id:      user?.id,
-      site_user_id: user?.id,
-
-      customerName:  formData.customerName  || user?.name  || "",
-      customerEmail: formData.customerEmail || user?.email || "",
-      customerPhone: formData.customerPhone || "",
-
-      items: displayItems.map((item: any) => ({
-        productId:   item.productId,
-        quantity:    item.quantity,
-        unitPrice:   parseFloat(item.product?.price || "0"),
-        productName: item.product?.name || "",
-        productSku:  item.product?.sku  || "",
-      })),
-
       shippingAddress: formData.shippingAddress,
       billingAddress:  billingAddr,
-      paymentMethod:   "bank_transfer",
-      notes:           formData.notes,
+      notes:           formData.notes || undefined,
     });
   };
 

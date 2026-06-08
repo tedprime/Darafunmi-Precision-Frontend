@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { getMyOrders } from "@/services/orderService";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,7 @@ export default function Dashboard() {
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["orders", "my"],
-    queryFn: () => api.get("/orders/my").then((r) => r.data?.data ?? r.data),
+    queryFn: getMyOrders,
   });
 
   const { data: bookings, isLoading: bookingsLoading } = useQuery({
