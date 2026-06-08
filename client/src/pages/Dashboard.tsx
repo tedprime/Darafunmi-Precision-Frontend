@@ -64,12 +64,19 @@ export default function Dashboard() {
     }).format(typeof price === "string" ? parseFloat(price) : price);
   };
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString("en-NG", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return "N/A";
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "N/A";
+      return d.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch {
+      return "N/A";
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -416,9 +423,7 @@ export default function Dashboard() {
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Member Since</p>
                         <p className="font-medium">
-                          {(user as any)?.createdAt || (user as any)?.created_at
-                            ? formatDate((user as any).createdAt ?? (user as any).created_at)
-                            : "N/A"}
+                          {formatDate((user as any)?.createdAt ?? (user as any)?.created_at ?? null)}
                         </p>
                       </div>
                     </div>
