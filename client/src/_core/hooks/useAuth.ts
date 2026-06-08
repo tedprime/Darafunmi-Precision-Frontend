@@ -10,7 +10,8 @@ export interface SiteUser {
   phone?: string;
   company?: string;
   role?: string;
-  createdAt?: string;
+  createdAt?: string;   // camelCase (if backend transforms)
+  created_at?: string;  // snake_case (raw from backend)
 }
 
 interface LoginPayload   { email: string; password: string }

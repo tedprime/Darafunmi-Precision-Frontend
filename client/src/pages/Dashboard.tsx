@@ -416,7 +416,9 @@ export default function Dashboard() {
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Member Since</p>
                         <p className="font-medium">
-                          {user?.createdAt ? formatDate(user.createdAt) : "N/A"}
+                          {(user as any)?.createdAt || (user as any)?.created_at
+                            ? formatDate((user as any).createdAt ?? (user as any).created_at)
+                            : "N/A"}
                         </p>
                       </div>
                     </div>
