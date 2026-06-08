@@ -11,6 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Package,
   Calendar,
+  FileText,
   ShoppingCart,
   User,
   Clock,
@@ -23,37 +24,19 @@ import {
 
 export default function Dashboard() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
-console.log("USER:", user);
-  // ─── Orders Query with Auth Handling ────────────────────────────────────
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ["orders", "my", user?.id || user?.email],
-    queryFn: () =>
-      api.get("/orders/my", { withCredentials: true }).then((r) => {
-        // Handle common wrapper formats safely
-        if (Array.isArray(r.data)) return r.data;
-        if (r.data && Array.isArray(r.data.data)) return r.data.data;
-        if (r.data && Array.isArray(r.data.orders)) return r.data.orders;
-        return [];
-      }),
-    enabled: isAuthenticated && !authLoading,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+
+  const { data: orders, isLoading: ordersLoading } = useQuery({
+    queryKey: ["orders", "my"],
+    queryFn: () => api.get("/orders/my").then((r) => r.data?.data ?? r.data),
   });
 
-  // ─── Bookings Query with Auth Handling ──────────────────────────────────
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
-    queryKey: ["bookings", "my", user?.id || user?.email],
-    queryFn: () =>
-      api.get("/bookings/my", { withCredentials: true }).then((r) => {
-        // Handle common wrapper formats safely
-        if (Array.isArray(r.data)) return r.data;
-        if (r.data && Array.isArray(r.data.data)) return r.data.data;
-        if (r.data && Array.isArray(r.data.bookings)) return r.data.bookings;
-        return [];
-      }),
-    enabled: isAuthenticated && !authLoading,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+  const { data: bookings, isLoading: bookingsLoading } = useQuery({
+    queryKey: ["bookings", "my"],
+    queryFn: () => api.get("/bookings/my").then((r) => {
+      const d = r.data?.data ?? r.data;
+      // Handle both array and paginated { data: [], count: N } shapes
+      return Array.isArray(d) ? d : (d?.data ?? []);
+    }),
   });
 
   const formatPrice = (price: string | number) => {
@@ -64,19 +47,12 @@ console.log("USER:", user);
     }).format(typeof price === "string" ? parseFloat(price) : price);
   };
 
-  const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return "N/A";
-    try {
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return "N/A";
-      return d.toLocaleDateString("en-GB", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return "N/A";
-    }
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -140,9 +116,6 @@ console.log("USER:", user);
     );
   }
 
-  const safeOrders = Array.isArray(orders) ? orders : [];
-  const safeBookings = Array.isArray(bookings) ? bookings : [];
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -176,7 +149,7 @@ console.log("USER:", user);
               </div>
             </div>
 
-            {/* Quick Stats Grid */}
+            {/* Quick Stats — all driven by live API data */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {/* Total Orders */}
               <Card>
@@ -189,7 +162,7 @@ console.log("USER:", user);
                       {ordersLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
-                        <p className="text-2xl font-bold">{safeOrders.length}</p>
+                        <p className="text-2xl font-bold">{orders?.length ?? 0}</p>
                       )}
                       <p className="text-sm text-muted-foreground">Total Orders</p>
                     </div>
@@ -208,7 +181,7 @@ console.log("USER:", user);
                       {bookingsLoading ? (
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
-                        <p className="text-2xl font-bold">{safeBookings.length}</p>
+                        <p className="text-2xl font-bold">{bookings?.length ?? 0}</p>
                       )}
                       <p className="text-sm text-muted-foreground">Service Bookings</p>
                     </div>
@@ -216,7 +189,7 @@ console.log("USER:", user);
                 </CardContent>
               </Card>
 
-              {/* Completed Stats Card */}
+              {/* Completed — bookings with status completed or delivered */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -228,9 +201,9 @@ console.log("USER:", user);
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {safeBookings.filter((b: any) =>
+                          {bookings?.filter((b: any) =>
                             ["completed", "delivered"].includes(b.status)
-                          ).length}
+                          ).length ?? 0}
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground">Completed</p>
@@ -239,7 +212,7 @@ console.log("USER:", user);
                 </CardContent>
               </Card>
 
-              {/* In Progress Stats Card */}
+              {/* In Progress — bookings not yet completed or cancelled */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
@@ -251,9 +224,9 @@ console.log("USER:", user);
                         <div className="h-8 w-10 bg-muted animate-pulse rounded mb-1" />
                       ) : (
                         <p className="text-2xl font-bold">
-                          {safeBookings.filter((b: any) =>
+                          {bookings?.filter((b: any) =>
                             ["pending", "confirmed", "processing"].includes(b.status)
-                          ).length}
+                          ).length ?? 0}
                         </p>
                       )}
                       <p className="text-sm text-muted-foreground">In Progress</p>
@@ -263,7 +236,7 @@ console.log("USER:", user);
               </Card>
             </div>
 
-            {/* Content Tabs Navigation */}
+            {/* Tabs */}
             <Tabs defaultValue="orders" className="space-y-6">
               <TabsList>
                 <TabsTrigger value="orders" className="gap-2">
@@ -280,7 +253,7 @@ console.log("USER:", user);
                 </TabsTrigger>
               </TabsList>
 
-              {/* Orders Tab View */}
+              {/* Orders Tab */}
               <TabsContent value="orders">
                 <Card>
                   <CardHeader>
@@ -292,9 +265,9 @@ console.log("USER:", user);
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                       </div>
-                    ) : safeOrders.length > 0 ? (
+                    ) : orders && orders.length > 0 ? (
                       <div className="space-y-4">
-                        {safeOrders.map((order: any) => (
+                        {orders.map((order: any) => (
                           <div
                             key={order.id}
                             className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg"
@@ -338,7 +311,7 @@ console.log("USER:", user);
                 </Card>
               </TabsContent>
 
-              {/* Bookings Tab View */}
+              {/* Bookings Tab */}
               <TabsContent value="bookings">
                 <Card>
                   <CardHeader>
@@ -350,9 +323,9 @@ console.log("USER:", user);
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                       </div>
-                    ) : safeBookings.length > 0 ? (
+                    ) : bookings && bookings.length > 0 ? (
                       <div className="space-y-4">
-                        {safeBookings.map((booking: any) => (
+                        {bookings.map((booking: any) => (
                           <div
                             key={booking.id}
                             className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg"
@@ -397,7 +370,7 @@ console.log("USER:", user);
                 </Card>
               </TabsContent>
 
-              {/* Account Tab View */}
+              {/* Account Tab */}
               <TabsContent value="account">
                 <Card>
                   <CardHeader>
@@ -423,7 +396,7 @@ console.log("USER:", user);
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">Member Since</p>
                         <p className="font-medium">
-                          {formatDate((user as any)?.createdAt ?? (user as any)?.created_at ?? null)}
+                          {user?.createdAt ? formatDate(user.createdAt) : "N/A"}
                         </p>
                       </div>
                     </div>
