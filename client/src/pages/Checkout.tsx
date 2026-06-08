@@ -12,20 +12,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { createOrder } from "@/services/orderService";
 import { toast } from "sonner";
 import {
   ArrowLeft,
   CreditCard,
   Truck,
   Shield,
-  CheckCircle2,
 } from "lucide-react";
 
 export default function Checkout() {
   const [, navigate] = useLocation();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [sameAsBilling, setSameAsBilling] = useState(true);
-  
+
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
@@ -48,75 +48,53 @@ export default function Checkout() {
   });
 
   const queryClient = useQueryClient();
+
   const { data: cartItems, isLoading } = useQuery({
     queryKey: ["cart"],
     queryFn: () => api.get("/cart").then((r) => r.data?.data ?? r.data),
+    enabled: isAuthenticated,
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: (data: unknown) =>
-      api.post("/orders", data).then((r) => r.data?.data ?? r.data),
-    onSuccess: (data) => {
+    mutationFn: createOrder,
+    onSuccess: (order) => {
       toast.success("Order placed successfully!");
-      // Refetch cart so badge clears immediately across all components
-      queryClient.refetchQueries({ queryKey: ["cart"] });
-      navigate(`/order-confirmation/${data.orderNumber}`);
+      queryClient.removeQueries({ queryKey: ["cart"] });
+      // Clear cart in background — don't block navigation
+      api.delete("/cart").catch(() => {});
+      navigate(`/order-confirmation/${order.orderNumber}`);
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || error.message || "Failed to place order");
+      toast.error(error?.message ?? "Failed to place order. Please try again.");
     },
   });
 
-  const clearCartMutation = useMutation({
-    mutationFn: () => api.delete("/cart").then((r) => r.data?.data ?? r.data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
-  });
-
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
+  const formatPrice = (price: string | number) =>
+    new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
     }).format(typeof price === "string" ? parseFloat(price) : price);
-  };
 
-  // Demo cart items
-  const demoCartItems = [
-    {
-      id: 1,
-      productId: 1,
-      quantity: 2,
-      product: {
-        name: "Digital Pressure Gauge",
-        price: "85000.00",
-        sku: "DPG-100",
-      },
-    },
-    {
-      id: 2,
-      productId: 2,
-      quantity: 1,
-      product: {
-        name: "RTD Temperature Sensor",
-        price: "45000.00",
-        sku: "RTD-PT100",
-      },
-    },
-  ];
-
-  const displayItems = isAuthenticated ? (cartItems || []) : demoCartItems;
-  const subtotal = displayItems.reduce((sum: number, item: any) => {
-    return sum + parseFloat(item.product?.price || "0") * item.quantity;
-  }, 0);
+  const displayItems = isAuthenticated ? (cartItems || []) : [];
+  const subtotal = displayItems.reduce(
+    (sum: number, item: any) =>
+      sum + parseFloat(item.product?.price || "0") * item.quantity,
+    0
+  );
   const shipping = subtotal > 100000 ? 0 : 5000;
-  const tax = subtotal * 0.075; // 7.5% VAT
+  const tax = subtotal * 0.075;
   const total = subtotal + shipping + tax;
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddressChange = (type: "shippingAddress" | "billingAddress", field: string, value: string) => {
+  const handleAddressChange = (
+    type: "shippingAddress" | "billingAddress",
+    field: string,
+    value: string
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [type]: { ...prev[type], [field]: value },
@@ -125,9 +103,14 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       toast.error("Please sign in to complete your order");
+      return;
+    }
+
+    if (!formData.shippingAddress.street || !formData.shippingAddress.city || !formData.shippingAddress.state) {
+      toast.error("Please fill in your shipping address");
       return;
     }
 
@@ -136,36 +119,42 @@ export default function Checkout() {
       return;
     }
 
-    const orderData = {
-       siteUserId: user?.id,        // ← add this
-      items: displayItems.map((item: any) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.product?.price || "0",
-        productName: item.product?.name || "",
-        productSku: item.product?.sku,
-      })),
-      customerName: formData.customerName || user?.name || "",
-      customerEmail: formData.customerEmail || user?.email || "",
-      customerPhone: formData.customerPhone,
-      shippingAddress: formData.shippingAddress,
-      billingAddress: sameAsBilling ? formData.shippingAddress : formData.billingAddress,
-      notes: formData.notes,
-    };
+    const billingAddr = sameAsBilling
+      ? formData.shippingAddress
+      : formData.billingAddress;
 
-    createOrderMutation.mutate(orderData, {
-      onSuccess: () => {
-        clearCartMutation.mutate();
-      },
+    createOrderMutation.mutate({
+      // Send user ID under every field name the backend might check
+      siteUserId:   user?.id,
+      userId:       user?.id,
+      user_id:      user?.id,
+      site_user_id: user?.id,
+
+      customerName:  formData.customerName  || user?.name  || "",
+      customerEmail: formData.customerEmail || user?.email || "",
+      customerPhone: formData.customerPhone || "",
+
+      items: displayItems.map((item: any) => ({
+        productId:   item.productId,
+        quantity:    item.quantity,
+        unitPrice:   parseFloat(item.product?.price || "0"),
+        productName: item.product?.name || "",
+        productSku:  item.product?.sku  || "",
+      })),
+
+      shippingAddress: formData.shippingAddress,
+      billingAddress:  billingAddr,
+      paymentMethod:   "bank_transfer",
+      notes:           formData.notes,
     });
   };
 
-  if (authLoading) {
+  if (authLoading || (isAuthenticated && isLoading)) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </main>
         <Footer />
       </div>
@@ -205,7 +194,7 @@ export default function Checkout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         <section className="section">
           <div className="container">
@@ -220,8 +209,9 @@ export default function Checkout() {
 
             <form onSubmit={handleSubmit}>
               <div className="grid lg:grid-cols-3 gap-8">
-                {/* Checkout Form */}
+                {/* ── Left column ───────────────────────────────── */}
                 <div className="lg:col-span-2 space-y-8">
+
                   {/* Contact Information */}
                   <Card>
                     <CardHeader>
@@ -244,7 +234,7 @@ export default function Checkout() {
                           <Input
                             id="customerEmail"
                             type="email"
-                            placeholder="john@example.com"
+                            placeholder="you@example.com"
                             value={formData.customerEmail || user?.email || ""}
                             onChange={(e) => handleChange("customerEmail", e.target.value)}
                             required
@@ -401,27 +391,24 @@ export default function Checkout() {
                   </Card>
                 </div>
 
-                {/* Order Summary */}
+                {/* ── Order Summary ──────────────────────────────── */}
                 <div>
                   <Card className="sticky top-24">
                     <CardHeader>
                       <CardTitle>Order Summary</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Items */}
                       <div className="space-y-3">
                         {displayItems.map((item: any) => (
                           <div key={item.id} className="flex justify-between text-sm">
-                            <span>
-                              {item.product?.name} × {item.quantity}
-                            </span>
+                            <span>{item.product?.name} × {item.quantity}</span>
                             <span>{formatPrice(parseFloat(item.product?.price || "0") * item.quantity)}</span>
                           </div>
                         ))}
                       </div>
-                      
+
                       <Separator />
-                      
+
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Subtotal</span>
@@ -436,9 +423,9 @@ export default function Checkout() {
                           <span>{formatPrice(tax)}</span>
                         </div>
                       </div>
-                      
+
                       <Separator />
-                      
+
                       <div className="flex justify-between text-lg font-semibold">
                         <span>Total</span>
                         <span className="text-primary">{formatPrice(total)}</span>
