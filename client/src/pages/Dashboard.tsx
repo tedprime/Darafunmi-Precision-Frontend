@@ -23,7 +23,7 @@ import {
 
 export default function Dashboard() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
-
+console.log("USER:", user);
   // ─── Orders Query with Auth Handling ────────────────────────────────────
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["orders", "my", user?.id || user?.email],
