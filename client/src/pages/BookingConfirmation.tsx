@@ -121,7 +121,7 @@ export default function BookingConfirmation() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Scheduled Date</p>
-                      <p className="font-medium">{formatDate(booking.scheduledDate)}</p>
+                      <p className="font-medium">{formatDate(booking.preferredDate)}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -174,31 +174,31 @@ export default function BookingConfirmation() {
                     <User className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Name</p>
-                      <p className="font-medium">{String(booking.customerName || "N/A")}</p>
+                      <p className="font-medium">{String(booking.name || "N/A")}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <p className="font-medium">{String(booking.customerEmail || "N/A")}</p>
+                      <p className="font-medium">{String(booking.email || "N/A")}</p>
                     </div>
                   </div>
-                  {booking.customerPhone && (
+                  {booking.phone && (
                     <div className="flex items-center gap-3">
                       <Phone className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="font-medium">{String(booking.customerPhone)}</p>
+                        <p className="font-medium">{String(booking.phone)}</p>
                       </div>
                     </div>
                   )}
-                  {booking.companyName && (
+                  {booking.company && (
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Company</p>
-                        <p className="font-medium">{String(booking.companyName)}</p>
+                        <p className="font-medium">{String(booking.company)}</p>
                       </div>
                     </div>
                   )}
