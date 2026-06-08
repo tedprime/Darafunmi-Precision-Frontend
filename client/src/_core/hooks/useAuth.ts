@@ -1,4 +1,4 @@
-import { api, clearAuthToken, setAuthToken } from "@/lib/api";
+import { api, clearAuthToken, setAuthToken, getStoredUser } from "@/lib/api";
 import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -10,8 +10,8 @@ export interface SiteUser {
   phone?: string;
   company?: string;
   role?: string;
-  createdAt?: string;   // camelCase (if backend transforms)
-  created_at?: string;  // snake_case (raw from backend)
+  isActive?: boolean;
+  createdAt?: string; // only returned by login/register, not /me
 }
 
 interface LoginPayload   { email: string; password: string }
@@ -55,7 +55,9 @@ export function useAuth(options?: UseAuthOptions) {
       if (!token) return null;
       try {
         const { data } = await api.get<MeResponse>("/user/auth/me");
-        return data.data;
+        // /me doesn't return createdAt — merge with stored user to preserve it
+        const stored = getStoredUser<SiteUser>();
+        return { ...stored, ...data.data } as SiteUser;
       } catch {
         clearAuthToken();
         return null;
