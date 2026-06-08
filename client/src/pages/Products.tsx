@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { Link } from "wouter";
@@ -17,74 +17,119 @@ import {
   Grid3X3,
   List,
   ArrowRight,
+  AlertCircle,
+  Package,
 } from "lucide-react";
 
-// Demo products data — replace with API call when ready
-const demoProducts = [
-  { id: 1, name: "Digital Pressure Gauge", slug: "digital-pressure-gauge", description: "High-precision digital pressure gauge with LCD display. Range: 0-100 bar.", price: "85000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Pressure Instruments", isFeatured: true },
-  { id: 2, name: "RTD Temperature Sensor", slug: "rtd-temperature-sensor", description: "PT100 RTD temperature sensor with 3-wire configuration.", price: "45000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Temperature Instruments", isFeatured: true },
-  { id: 3, name: "Electromagnetic Flow Meter", slug: "electromagnetic-flow-meter", description: "Industrial electromagnetic flow meter for conductive liquids.", price: "250000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Flow Instruments", isFeatured: true },
-  { id: 4, name: "pH Meter with Probe", slug: "ph-meter-with-probe", description: "Portable pH meter with automatic temperature compensation.", price: "65000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Analytical Instruments", isFeatured: false },
-  { id: 5, name: "Analytical Balance", slug: "analytical-balance", description: "Precision analytical balance with 0.0001g readability.", price: "180000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Laboratory Equipment", isFeatured: true },
-  { id: 6, name: "Calibration Weight Set", slug: "calibration-weight-set", description: "OIML Class E2 calibration weight set.", price: "120000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Calibration Standards", isFeatured: false },
-  { id: 7, name: "Digital Multimeter", slug: "digital-multimeter", description: "Professional digital multimeter with true RMS.", price: "35000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Electrical Instruments", isFeatured: false },
-  { id: 8, name: "Conductivity Meter", slug: "conductivity-meter", description: "Portable conductivity meter with ATC.", price: "55000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop", category: "Analytical Instruments", isFeatured: false },
-];
+// ─── Types ────────────────────────────────────────────────────────
+interface Product {
+  id: number;
+  name: string;
+  description?: string;
+  price: string;
+  compareAtPrice?: string;
+  imageUrl?: string;
+  sku?: string;
+  status: string;
+  isFeatured?: boolean;
+  category?: { id: number; name: string };
+  categoryId?: number;
+}
 
-const categories = ["All Categories","Pressure Instruments","Temperature Instruments","Flow Instruments","Analytical Instruments","Laboratory Equipment","Calibration Standards","Electrical Instruments"];
+// ─── Skeleton ─────────────────────────────────────────────────────
+const Skeleton = ({ className = "" }: { className?: string }) => (
+  <div className={`animate-pulse bg-muted rounded-md ${className}`} />
+);
+
+const ProductCardSkeleton = () => (
+  <Card className="overflow-hidden">
+    <Skeleton className="aspect-square w-full rounded-none" />
+    <CardHeader className="pb-2">
+      <Skeleton className="h-3 w-24 mb-2" />
+      <Skeleton className="h-5 w-40" />
+    </CardHeader>
+    <CardContent className="pb-2">
+      <Skeleton className="h-4 w-full mb-1" />
+      <Skeleton className="h-4 w-3/4 mb-3" />
+      <Skeleton className="h-6 w-28" />
+    </CardContent>
+    <CardFooter className="gap-2">
+      <Skeleton className="h-9 flex-1" />
+      <Skeleton className="h-9 w-9" />
+    </CardFooter>
+  </Card>
+);
 
 export default function Products() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [sortBy, setSortBy] = useState("featured");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery]       = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sortBy, setSortBy]                 = useState("featured");
+  const [viewMode, setViewMode]             = useState<"grid" | "list">("grid");
+  const [searchTimer, setSearchTimer]       = useState<ReturnType<typeof setTimeout> | null>(null);
 
+  const queryClient = useQueryClient();
+
+  // ── Debounce search input ──────────────────────────────────────
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (searchTimer) clearTimeout(searchTimer);
+    const timer = setTimeout(() => setDebouncedSearch(value), 400);
+    setSearchTimer(timer);
+  };
+
+  // ── Fetch products ─────────────────────────────────────────────
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["products", debouncedSearch],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.set("limit", "100");
+      params.set("status", "active");
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const res = await api.get(`/products?${params.toString()}`);
+      const body = res.data;
+      // Handle { success, data: [] } or { success, data: { data: [] } }
+      if (Array.isArray(body?.data)) return body.data as Product[];
+      if (Array.isArray(body?.data?.data)) return body.data.data as Product[];
+      if (Array.isArray(body)) return body as Product[];
+      return [] as Product[];
+    },
+    staleTime: 1000 * 60 * 2,
+  });
+
+  const products = data ?? [];
+
+  // ── Add to cart ────────────────────────────────────────────────
   const addToCartMutation = useMutation({
-    mutationFn: (data: { productId: number; quantity?: number }) =>
-      api.post("/cart", data).then((r) => r.data?.data ?? r.data),
+    mutationFn: (productId: number) =>
+      api.post("/cart", { productId, quantity: 1 }).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
-      toast.success("Product added to cart!");
+      toast.success("Added to cart!");
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
-    onError: () => {
-      toast.error("Failed to add product to cart");
-    },
+    onError: () => toast.error("Failed to add to cart"),
   });
 
-  // Filter products
-  let filteredProducts = demoProducts.filter((product) => {
-    const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All Categories" || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+  // ── Sort client-side (API has no sort param) ───────────────────
+  const sorted = [...products].sort((a, b) => {
+    if (sortBy === "price-low") return parseFloat(a.price) - parseFloat(b.price);
+    if (sortBy === "price-high") return parseFloat(b.price) - parseFloat(a.price);
+    if (sortBy === "name") return a.name.localeCompare(b.name);
+    return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0); // featured
   });
 
-  // Sort products
-  if (sortBy === "price-low") {
-    filteredProducts = [...filteredProducts].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-  } else if (sortBy === "price-high") {
-    filteredProducts = [...filteredProducts].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-  } else if (sortBy === "name") {
-    filteredProducts = [...filteredProducts].sort((a, b) => a.name.localeCompare(b.name));
-  } else {
-    filteredProducts = [...filteredProducts].sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
-  }
-
-  const formatPrice = (price: string) => {
-    return new Intl.NumberFormat("en-NG", {
+  const formatPrice = (price: string) =>
+    new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
     }).format(parseFloat(price));
-  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Hero */}
         <section className="relative gradient-hero py-16 md:py-20">
           <div className="container">
             <div className="max-w-3xl">
@@ -93,7 +138,7 @@ export default function Products() {
                 Quality <span className="text-primary">Instruments & Equipment</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Browse our selection of high-quality calibration instruments, laboratory 
+                Browse our selection of high-quality calibration instruments, laboratory
                 equipment, and process control devices.
               </p>
             </div>
@@ -110,23 +155,10 @@ export default function Products() {
                   <Input
                     placeholder="Search products..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="pl-10"
                   />
                 </div>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-[200px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="flex items-center gap-4">
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -161,32 +193,62 @@ export default function Products() {
           </div>
         </section>
 
-        {/* Products Grid */}
+        {/* Product Grid */}
         <section className="section">
           <div className="container">
-            <div className="flex items-center justify-between mb-8">
-              <p className="text-muted-foreground">
-                Showing {filteredProducts.length} products
-              </p>
-            </div>
 
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground mb-4">No products found matching your criteria.</p>
-                <Button variant="outline" onClick={() => { setSearchQuery(""); setSelectedCategory("All Categories"); }}>
-                  Clear Filters
+            {/* Error */}
+            {error && !isLoading && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-2">Failed to load products</h3>
+                <p className="text-muted-foreground mb-4 text-sm">{(error as Error).message}</p>
+                <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["products"] })}>
+                  Retry
                 </Button>
               </div>
-            ) : viewMode === "grid" ? (
+            )}
+
+            {/* Skeletons */}
+            {isLoading && (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
+                {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
+              </div>
+            )}
+
+            {/* Empty */}
+            {!isLoading && !error && sorted.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-2">No products found</h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {debouncedSearch ? `No results for "${debouncedSearch}"` : "No products available yet."}
+                </p>
+                {debouncedSearch && (
+                  <Button variant="outline" onClick={() => { setSearchQuery(""); setDebouncedSearch(""); }}>
+                    Clear Search
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Grid view */}
+            {!isLoading && !error && sorted.length > 0 && viewMode === "grid" && (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {sorted.map((product) => (
                   <Card key={product.id} className="card-hover group overflow-hidden">
                     <div className="relative aspect-square bg-muted">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      {product.imageUrl ? (
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="h-16 w-16 text-muted-foreground/40" />
+                        </div>
+                      )}
                       {product.isFeatured && (
                         <Badge className="absolute top-3 left-3 bg-secondary">Featured</Badge>
                       )}
@@ -195,12 +257,12 @@ export default function Products() {
                       )}
                     </div>
                     <CardHeader className="pb-2">
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                      <p className="text-xs text-muted-foreground">{product.category?.name ?? "—"}</p>
                       <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="pb-2">
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {product.description}
+                        {product.description ?? ""}
                       </p>
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-primary">
@@ -214,14 +276,12 @@ export default function Products() {
                       </div>
                     </CardContent>
                     <CardFooter className="gap-2">
-                      <Link href={`/products/${product.slug}`} className="flex-1">
-                        <Button variant="outline" className="w-full">
-                          View Details
-                        </Button>
+                      <Link href={`/products/${product.id}`} className="flex-1">
+                        <Button variant="outline" className="w-full">View Details</Button>
                       </Link>
                       <Button
                         size="icon"
-                        onClick={() => addToCartMutation.mutate({ productId: product.id })}
+                        onClick={() => addToCartMutation.mutate(product.id)}
                         disabled={addToCartMutation.isPending}
                       >
                         <ShoppingCart className="h-4 w-4" />
@@ -230,25 +290,34 @@ export default function Products() {
                   </Card>
                 ))}
               </div>
-            ) : (
+            )}
+
+            {/* List view */}
+            {!isLoading && !error && sorted.length > 0 && viewMode === "list" && (
               <div className="space-y-4">
-                {filteredProducts.map((product) => (
+                {sorted.map((product) => (
                   <Card key={product.id} className="card-hover">
                     <div className="flex flex-col md:flex-row">
                       <div className="md:w-48 h-48 bg-muted flex-shrink-0">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-12 w-12 text-muted-foreground/40" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 p-6">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
+                            <p className="text-xs text-muted-foreground mb-1">{product.category?.name ?? "—"}</p>
                             <h3 className="text-xl font-bold mb-2">{product.name}</h3>
-                            <p className="text-muted-foreground mb-4">{product.description}</p>
-                            <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+                            <p className="text-muted-foreground mb-4">{product.description ?? ""}</p>
+                            {product.sku && <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>}
                           </div>
                           <div className="flex flex-col items-end gap-4">
                             <div className="text-right">
@@ -262,11 +331,11 @@ export default function Products() {
                               )}
                             </div>
                             <div className="flex gap-2">
-                              <Link href={`/products/${product.slug}`}>
+                              <Link href={`/products/${product.id}`}>
                                 <Button variant="outline">View Details</Button>
                               </Link>
                               <Button
-                                onClick={() => addToCartMutation.mutate({ productId: product.id })}
+                                onClick={() => addToCartMutation.mutate(product.id)}
                                 disabled={addToCartMutation.isPending}
                               >
                                 <ShoppingCart className="h-4 w-4 mr-2" />
@@ -291,7 +360,7 @@ export default function Products() {
               <CardContent className="p-12 text-center">
                 <h2 className="text-3xl font-bold mb-4">Can't Find What You Need?</h2>
                 <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-                  We can source specific instruments and equipment for your requirements. 
+                  We can source specific instruments and equipment for your requirements.
                   Contact us for custom orders and bulk pricing.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">

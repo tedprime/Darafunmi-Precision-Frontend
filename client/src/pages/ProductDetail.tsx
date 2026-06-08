@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useState } from "react";
 import { useParams, Link } from "wouter";
@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   ShoppingCart,
-  Heart,
   Share2,
   CheckCircle2,
   Truck,
@@ -22,52 +21,145 @@ import {
   Minus,
   Plus,
   Phone,
+  Package,
+  AlertCircle,
 } from "lucide-react";
 
+// ─── Types ────────────────────────────────────────────────────────
+interface ProductSpec {
+  label: string;
+  value: string;
+}
 
+interface Product {
+  id: number;
+  name: string;
+  description?: string;
+  longDescription?: string;
+  price: string;
+  compareAtPrice?: string;
+  imageUrl?: string;
+  images?: string[];
+  sku?: string;
+  status: string;
+  isFeatured?: boolean;
+  inStock?: boolean;
+  category?: { id: number; name: string };
+  specifications?: ProductSpec[];
+  features?: string[];
+}
 
-// Demo product data — replace with API call when ready
-const demoProducts: Record<string, { id: number; name: string; description: string; longDescription: string; price: string; compareAtPrice?: string; image: string; images: string[]; category: string; sku: string; specifications: { label: string; value: string }[]; features: string[]; inStock: boolean }> = {
-  "digital-pressure-gauge": { id: 1, name: "Digital Pressure Gauge", description: "High-precision digital pressure gauge with LCD display.", longDescription: "The Digital Pressure Gauge is a high-precision instrument designed for accurate pressure measurement in industrial and laboratory applications.", price: "85000.00", compareAtPrice: "95000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=600&fit=crop", images: ["https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=600&fit=crop"], category: "Pressure Instruments", sku: "DPG-100", specifications: [{ label: "Range", value: "0-100 bar" }, { label: "Accuracy", value: "±0.25% FS" }], features: ["High accuracy ±0.25% full scale", "Large LCD display", "Stainless steel construction"], inStock: true },
-  "rtd-temperature-sensor": { id: 2, name: "RTD Temperature Sensor", description: "PT100 RTD temperature sensor with 3-wire configuration.", longDescription: "The PT100 RTD Temperature Sensor is a precision temperature measurement device suitable for industrial process control.", price: "45000.00", image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=600&fit=crop", images: ["https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&h=600&fit=crop"], category: "Temperature Instruments", sku: "RTD-PT100", specifications: [{ label: "Range", value: "-200°C to 600°C" }, { label: "Accuracy", value: "±0.15°C" }], features: ["Class A accuracy", "Wide temperature range"], inStock: true },
-};
+const Skeleton = ({ className = "" }: { className?: string }) => (
+  <div className={`animate-pulse bg-muted rounded-md ${className}`} />
+);
 
 export default function ProductDetail() {
-  const { slug } = useParams<{ slug: string }>();
-  const [quantity, setQuantity] = useState(1);
+  // Route param is now the product ID (numeric string)
+  const { slug: idParam } = useParams<{ slug: string }>();
+  const [quantity, setQuantity]           = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const queryClient = useQueryClient();
 
-  const product = demoProducts[slug || ""] || demoProducts["digital-pressure-gauge"];
+  // ── Fetch product ──────────────────────────────────────────────
+  const { data: product, isLoading, error } = useQuery<Product>({
+    queryKey: ["products", idParam],
+    queryFn: async () => {
+      const res = await api.get(`/products/${idParam}`);
+      const body = res.data;
+      return (body?.data ?? body) as Product;
+    },
+    enabled: !!idParam,
+  });
 
+  // ── Add to cart ────────────────────────────────────────────────
   const addToCartMutation = useMutation({
-    mutationFn: (data: { productId: number; quantity?: number }) =>
+    mutationFn: (data: { productId: number; quantity: number }) =>
       api.post("/cart", data).then((r) => r.data?.data ?? r.data),
     onSuccess: () => {
       toast.success(`${quantity} item(s) added to cart!`);
-      queryClient.refetchQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
-    onError: () => {
-      toast.error("Failed to add product to cart");
-    },
+    onError: () => toast.error("Failed to add product to cart"),
   });
 
-  const formatPrice = (price: string) => {
-    return new Intl.NumberFormat("en-NG", {
+  const formatPrice = (price: string) =>
+    new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency: "NGN",
       minimumFractionDigits: 0,
     }).format(parseFloat(price));
-  };
 
   const handleAddToCart = () => {
+    if (!product) return;
     addToCartMutation.mutate({ productId: product.id, quantity });
   };
+
+  // Derive image list — API may return imageUrl (single) or images (array)
+  const imageList = product?.images?.length
+    ? product.images
+    : product?.imageUrl
+    ? [product.imageUrl]
+    : [];
+
+  const inStock = product?.inStock !== false && product?.status !== "inactive";
+
+  // ── Loading ────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <div className="container py-4">
+            <Skeleton className="h-8 w-36" />
+          </div>
+          <section className="container pb-16">
+            <div className="grid lg:grid-cols-2 gap-12">
+              <Skeleton className="aspect-square w-full" />
+              <div className="space-y-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-10 w-40" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Error / not found ──────────────────────────────────────────
+  if (error || !product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center py-20">
+            <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-bold mb-2">Product Not Found</h2>
+            <p className="text-muted-foreground mb-6">
+              {(error as Error)?.message ?? "This product could not be loaded."}
+            </p>
+            <Link href="/products">
+              <Button>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Products
+              </Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         {/* Breadcrumb */}
         <div className="container py-4">
@@ -84,16 +176,20 @@ export default function ProductDetail() {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Images */}
             <div className="space-y-4">
-              <div className="aspect-square bg-muted rounded-lg overflow-hidden">
-                <img
-                  src={product.images[selectedImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="aspect-square bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                {imageList.length > 0 ? (
+                  <img
+                    src={imageList[selectedImage]}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Package className="h-24 w-24 text-muted-foreground/40" />
+                )}
               </div>
-              {product.images.length > 1 && (
+              {imageList.length > 1 && (
                 <div className="flex gap-4">
-                  {product.images.map((image, index) => (
+                  {imageList.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
@@ -110,9 +206,13 @@ export default function ProductDetail() {
 
             {/* Product Info */}
             <div>
-              <Badge variant="secondary" className="mb-4">{product.category}</Badge>
+              {product.category && (
+                <Badge variant="secondary" className="mb-4">{product.category.name}</Badge>
+              )}
               <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-              <p className="text-muted-foreground mb-6">{product.description}</p>
+              {product.description && (
+                <p className="text-muted-foreground mb-6">{product.description}</p>
+              )}
 
               {/* Price */}
               <div className="flex items-center gap-4 mb-6">
@@ -133,7 +233,7 @@ export default function ProductDetail() {
 
               {/* Stock Status */}
               <div className="flex items-center gap-2 mb-6">
-                {product.inStock ? (
+                {inStock ? (
                   <>
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                     <span className="text-green-500 font-medium">In Stock</span>
@@ -141,7 +241,9 @@ export default function ProductDetail() {
                 ) : (
                   <span className="text-red-500 font-medium">Out of Stock</span>
                 )}
-                <span className="text-muted-foreground">• SKU: {product.sku}</span>
+                {product.sku && (
+                  <span className="text-muted-foreground">• SKU: {product.sku}</span>
+                )}
               </div>
 
               {/* Quantity & Add to Cart */}
@@ -174,15 +276,12 @@ export default function ProductDetail() {
                   size="lg"
                   className="flex-1"
                   onClick={handleAddToCart}
-                  disabled={!product.inStock || addToCartMutation.isPending}
+                  disabled={!inStock || addToCartMutation.isPending}
                 >
                   <ShoppingCart className="mr-2 h-5 w-5" />
-                  Add to Cart
+                  {addToCartMutation.isPending ? "Adding…" : "Add to Cart"}
                 </Button>
-                <Button variant="outline" size="icon">
-                  <Heart className="h-5 w-5" />
-                </Button>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={() => navigator.share?.({ title: product.name, url: window.location.href })}>
                   <Share2 className="h-5 w-5" />
                 </Button>
               </div>
@@ -214,47 +313,52 @@ export default function ProductDetail() {
               >
                 Description
               </TabsTrigger>
-              <TabsTrigger
-                value="specifications"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Specifications
-              </TabsTrigger>
-              <TabsTrigger
-                value="features"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-              >
-                Features
-              </TabsTrigger>
+              {product.specifications?.length ? (
+                <TabsTrigger
+                  value="specifications"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                >
+                  Specifications
+                </TabsTrigger>
+              ) : null}
+              {product.features?.length ? (
+                <TabsTrigger
+                  value="features"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                >
+                  Features
+                </TabsTrigger>
+              ) : null}
             </TabsList>
             <TabsContent value="description" className="pt-6">
               <p className="text-muted-foreground leading-relaxed">
-                {product.longDescription}
+                {product.longDescription ?? product.description ?? "No description available."}
               </p>
             </TabsContent>
-            <TabsContent value="specifications" className="pt-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                {product.specifications.map((spec, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between py-3 border-b"
-                  >
-                    <span className="text-muted-foreground">{spec.label}</span>
-                    <span className="font-medium">{spec.value}</span>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            <TabsContent value="features" className="pt-6">
-              <div className="grid md:grid-cols-2 gap-3">
-                {product.features.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
+            {product.specifications?.length ? (
+              <TabsContent value="specifications" className="pt-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {product.specifications.map((spec, index) => (
+                    <div key={index} className="flex justify-between py-3 border-b">
+                      <span className="text-muted-foreground">{spec.label}</span>
+                      <span className="font-medium">{spec.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            ) : null}
+            {product.features?.length ? (
+              <TabsContent value="features" className="pt-6">
+                <div className="grid md:grid-cols-2 gap-3">
+                  {product.features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            ) : null}
           </Tabs>
         </section>
 
@@ -269,9 +373,7 @@ export default function ProductDetail() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/contact">
-                    <Button size="lg" variant="secondary">
-                      Contact Us
-                    </Button>
+                    <Button size="lg" variant="secondary">Contact Us</Button>
                   </Link>
                   <a href="tel:+2348034680544">
                     <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">
