@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
   Target,
 } from "lucide-react";
 
+// ─── Services with numeric IDs matching service_id DB column ──────
 const services = [
   { id: 1, name: "Calibration Services",  icon: Microscope,    description: "ISO-compliant calibration for laboratory and medical equipment" },
   { id: 2, name: "Maintenance & Repair",   icon: Wrench,        description: "Comprehensive maintenance and repair services" },
@@ -37,113 +38,71 @@ const timeSlots = [
   "02:00 PM", "03:00 PM", "04:00 PM",
 ];
 
+// ─── Payload uses DB column names (backend ignores Swagger aliases) ─
 interface BookingPayload {
-  booking_number:    string;
-  service_id:        number;
-  site_user_id?:     number;
-  status:            string;
-  scheduled_date:    string;
-  scheduled_time?:   string;
-  customer_name:     string;
-  customer_email:    string;
-  customer_phone?:   string;
-  company_name?:     string;
-  service_location?: string;
-  equipment_details?: string;
+  serviceId?:        number;
+  scheduledDate?:    string;
+  scheduledTime?:    string;
+  customerName:      string;
+  customerEmail:     string;
+  customerPhone?:    string;
+  companyName?:      string;
+  serviceLocation?:  string;
+  equipmentDetails?: string;
   notes?:            string;
 }
 
 export default function BookService() {
+  const [, navigate] = useLocation();
   const { user } = useAuth();
-  const [, setLocation] = useLocation();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     scheduledDate:    "",
     scheduledTime:    "",
-    name:             "",
-    email:            "",
-    phone:            "",
-    company:          "",
+    customerName:     user?.name    ?? "",
+    customerEmail:    user?.email   ?? "",
+    customerPhone:    user?.phone   ?? "",
+    companyName:      user?.company ?? "",
     serviceLocation:  "",
     equipmentDetails: "",
     notes:            "",
   });
-
-  // Automatically track, map and auto-fill user account profile values on mount
-  useEffect(() => {
-    if (user) {
-      setFormData((prev) => ({
-        ...prev,
-        name:    prev.name    || user.name    || "",
-        email:   prev.email   || user.email   || "",
-        phone:   prev.phone   || user.phone   || "",
-        company: prev.company || user.company || "",
-      }));
-    }
-  }, [user]);
 
   const createBookingMutation = useMutation({
     mutationFn: (payload: BookingPayload) =>
       api.post("/bookings", payload).then((r) => r.data?.data ?? r.data),
     onSuccess: (data) => {
       toast.success("Booking submitted successfully!");
-      const bNum = data?.booking_number || data?.bookingNumber;
-      if (bNum) {
-        setLocation(`/booking-confirmation/${bNum}`);
-      } else {
-        setLocation("/dashboard");
-      }
+      navigate(`/booking-confirmation/${data.bookingNumber}`);
     },
-    onError: (error: any) => {
-      console.error("Booking submission failure details:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || "Failed to submit booking");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit booking");
     },
   });
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
-  // Safe manual compilation function preventing detached layout exceptions
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedService) { 
-      toast.error("Please select a service in Step 1"); 
-      setStep(1);
-      return; 
-    }
-    if (!formData.scheduledDate) {
-      toast.error("An appointment date is required in Step 2");
-      setStep(2);
-      return;
-    }
-    if (!formData.name || !formData.email) {
-      toast.error("Name and email are required fields");
-      return;
-    }
+    if (!selectedService)                          { toast.error("Please select a service"); return; }
+    if (!formData.customerName || !formData.customerEmail) { toast.error("Name and email are required"); return; }
+    if (!formData.scheduledDate)                   { toast.error("Please select a preferred date"); return; }
 
-    const generatedBookingNumber = `BK-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
-
-    const submissionPayload: BookingPayload = {
-      booking_number:    generatedBookingNumber,
-      service_id:        Number(selectedService),
-      site_user_id:      user?.id ? Number(user.id) : undefined,
-      status:            "pending",
-      scheduled_date:    formData.scheduledDate,
-      scheduled_time:    formData.scheduledTime    || undefined,
-      customer_name:     formData.name,
-      customer_email:    formData.email,
-      customer_phone:    formData.phone            || undefined,
-      company_name:      formData.company          || undefined,
-      service_location:  formData.serviceLocation  || undefined,
-      equipment_details: formData.equipmentDetails || undefined,
-      notes:             formData.notes            || undefined,
-    };
-
-    createBookingMutation.mutate(submissionPayload);
+    createBookingMutation.mutate({
+      serviceId:        selectedService,
+      scheduledDate:    formData.scheduledDate    || undefined,
+      scheduledTime:    formData.scheduledTime    || undefined,
+      customerName:     formData.customerName,
+      customerEmail:    formData.customerEmail,
+      customerPhone:    formData.customerPhone    || undefined,
+      companyName:      formData.companyName      || undefined,
+      serviceLocation:  formData.serviceLocation  || undefined,
+      equipmentDetails: formData.equipmentDetails || undefined,
+      notes:            formData.notes            || undefined,
+    });
   };
 
   const selectedServiceData = services.find((s) => s.id === selectedService);
@@ -153,6 +112,7 @@ export default function BookService() {
       <Header />
 
       <main className="flex-1">
+        {/* Hero */}
         <section className="relative gradient-hero py-16 md:py-20">
           <div className="container">
             <div className="max-w-3xl">
@@ -170,7 +130,7 @@ export default function BookService() {
 
         <section className="section">
           <div className="container max-w-4xl">
-            {/* Progress Steps Indicators */}
+            {/* Progress Steps */}
             <div className="flex items-center justify-center gap-4 mb-12">
               {[1, 2, 3].map((s) => (
                 <div key={s} className="flex items-center">
@@ -179,23 +139,19 @@ export default function BookService() {
                   }`}>
                     {step > s ? <CheckCircle2 className="h-5 w-5" /> : s}
                   </div>
-                  {s < 3 && (
-                    <div className={`w-16 h-1 mx-2 ${step > s ? "bg-primary" : "bg-muted"}`} />
-                  )}
+                  {s < 3 && <div className={`w-16 h-1 mx-2 ${step > s ? "bg-primary" : "bg-muted"}`} />}
                 </div>
               ))}
             </div>
 
-            {/* Changed from <form> container wrapper to prevent unexpected native submissions */}
-            <div className="space-y-6">
-              {/* Step 1: Select Service */}
+            <form onSubmit={handleSubmit}>
+              {/* Step 1 — Select Service */}
               {step === 1 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold mb-2">Select a Service</h2>
                     <p className="text-muted-foreground">Choose the service you'd like to book</p>
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-4">
                     {services.map((service) => (
                       <Card
@@ -221,24 +177,21 @@ export default function BookService() {
                       </Card>
                     ))}
                   </div>
-
                   <div className="flex justify-end">
                     <Button type="button" onClick={() => setStep(2)} disabled={!selectedService}>
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      Continue <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Schedule Options */}
+              {/* Step 2 — Date & Time */}
               {step === 2 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
                     <h2 className="text-2xl font-bold mb-2">Choose a Date & Time</h2>
                     <p className="text-muted-foreground">Select your preferred appointment slot</p>
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="scheduledDate">
@@ -253,10 +206,10 @@ export default function BookService() {
                           value={formData.scheduledDate}
                           min={new Date().toISOString().split("T")[0]}
                           onChange={(e) => handleChange("scheduledDate", e.target.value)}
+                          required
                         />
                       </div>
                     </div>
-
                     <div className="space-y-2">
                       <Label>Preferred Time</Label>
                       <Select
@@ -268,8 +221,8 @@ export default function BookService() {
                           <SelectValue placeholder="Select a time slot" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeSlots.map((time) => (
-                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                          {timeSlots.map((t) => (
+                            <SelectItem key={t} value={t}>{t}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -277,7 +230,7 @@ export default function BookService() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="serviceLocation">Service Location</Label>
+                    <Label>Service Location</Label>
                     <Select
                       value={formData.serviceLocation}
                       onValueChange={(v) => handleChange("serviceLocation", v)}
@@ -288,7 +241,7 @@ export default function BookService() {
                       <SelectContent>
                         <SelectItem value="on-site">On-Site (At Your Location)</SelectItem>
                         <SelectItem value="laboratory">Our Laboratory</SelectItem>
-                        <SelectItem value="remote">Remote/Virtual (Training Only)</SelectItem>
+                        <SelectItem value="remote">Remote / Virtual (Training Only)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -300,21 +253,31 @@ export default function BookService() {
                       placeholder="Describe the equipment to be serviced (type, model, quantity, etc.)"
                       value={formData.equipmentDetails}
                       onChange={(e) => handleChange("equipmentDetails", e.target.value)}
-                      rows={4}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Additional Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="Any special requirements..."
+                      value={formData.notes}
+                      onChange={(e) => handleChange("notes", e.target.value)}
+                      rows={3}
                     />
                   </div>
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(1)}>Back</Button>
                     <Button type="button" onClick={() => setStep(3)} disabled={!formData.scheduledDate}>
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      Continue <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Auto-filled Contact Fields & Trigger Submit */}
+              {/* Step 3 — Contact Info */}
               {step === 3 && (
                 <div className="space-y-6">
                   <div className="text-center mb-8">
@@ -322,6 +285,7 @@ export default function BookService() {
                     <p className="text-muted-foreground">Confirm your contact details</p>
                   </div>
 
+                  {/* Summary */}
                   <Card className="bg-muted/30 mb-6">
                     <CardContent className="p-4">
                       <div className="flex flex-wrap gap-4 text-sm">
@@ -349,78 +313,61 @@ export default function BookService() {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="name">
-                        Full Name <span className="text-destructive">*</span>
-                      </Label>
+                      <Label htmlFor="customerName">Full Name <span className="text-destructive">*</span></Label>
                       <Input
-                        id="name"
+                        id="customerName"
                         placeholder="John Doe"
-                        value={formData.name}
-                        onChange={(e) => handleChange("name", e.target.value)}
+                        value={formData.customerName}
+                        onChange={(e) => handleChange("customerName", e.target.value)}
+                        required
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">
-                        Email Address <span className="text-destructive">*</span>
-                      </Label>
+                      <Label htmlFor="customerEmail">Email Address <span className="text-destructive">*</span></Label>
                       <Input
-                        id="email"
+                        id="customerEmail"
                         type="email"
                         placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={(e) => handleChange("email", e.target.value)}
+                        value={formData.customerEmail}
+                        onChange={(e) => handleChange("customerEmail", e.target.value)}
+                        required
                       />
                     </div>
                   </div>
-
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="customerPhone">Phone Number</Label>
                       <Input
-                        id="phone"
+                        id="customerPhone"
                         placeholder="+234 xxx xxx xxxx"
-                        value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
+                        value={formData.customerPhone}
+                        onChange={(e) => handleChange("customerPhone", e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="company">Company Name</Label>
+                      <Label htmlFor="companyName">Company Name</Label>
                       <Input
-                        id="company"
-                        placeholder="Your Company"
-                        value={formData.company}
-                        onChange={(e) => handleChange("company", e.target.value)}
+                        id="companyName"
+                        placeholder="Your organisation"
+                        value={formData.companyName}
+                        onChange={(e) => handleChange("companyName", e.target.value)}
                       />
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Additional Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Any additional information or special requirements..."
-                      value={formData.notes}
-                      onChange={(e) => handleChange("notes", e.target.value)}
-                      rows={3}
-                    />
                   </div>
 
                   <div className="flex justify-between">
                     <Button type="button" variant="outline" onClick={() => setStep(2)}>Back</Button>
-                    <Button 
-                      type="button" 
-                      onClick={handleFinalSubmit} 
-                      disabled={createBookingMutation.isPending}
-                    >
+                    <Button type="submit" disabled={createBookingMutation.isPending}>
                       {createBookingMutation.isPending ? "Submitting…" : "Submit Booking"}
                     </Button>
                   </div>
                 </div>
               )}
-            </div>
+            </form>
           </div>
         </section>
 
+        {/* CTA */}
         <section className="section bg-muted/30">
           <div className="container">
             <Card className="gradient-cta text-white overflow-hidden">
@@ -432,8 +379,7 @@ export default function BookService() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <a href="tel:+2348034680544">
                     <Button size="lg" variant="secondary">
-                      <Phone className="mr-2 h-5 w-5" />
-                      Call Now
+                      <Phone className="mr-2 h-5 w-5" />Call Now
                     </Button>
                   </a>
                   <Link href="/contact">
