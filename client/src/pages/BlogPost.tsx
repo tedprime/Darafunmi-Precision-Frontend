@@ -4,7 +4,6 @@ import { useParams, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -17,127 +16,138 @@ import {
   Twitter,
   Linkedin,
   Tag,
+  AlertTriangle,
 } from "lucide-react";
 
-const demoBlogPost = {
-  id: 1,
-  slug: "importance-of-regular-calibration",
-  title: "The Importance of Regular Instrument Calibration",
-  excerpt: "Discover why maintaining a consistent calibration schedule is crucial for measurement accuracy and regulatory compliance.",
-  content: `
-## Introduction
+// ─── Types ────────────────────────────────────────────────────────
+interface BlogPostData {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt?: string;
+  content: string;
+  author: string | { name: string };
+  authorBio?: string;
+  category: string;
+  tags?: string[];
+  featuredImage?: string;
+  imageUrl?: string;
+  readTime?: string;
+  publishedAt?: string;
+  createdAt?: string;
+}
 
-In today's precision-driven industries, accurate measurements are not just a preference—they're a necessity. Whether you're in manufacturing, healthcare, oil and gas, or any other sector that relies on instrumentation, regular calibration is the cornerstone of quality assurance and regulatory compliance.
+interface RelatedPost {
+  id: number;
+  slug?: string;
+  title: string;
+  featuredImage?: string;
+  imageUrl?: string;
+  publishedAt?: string;
+  createdAt?: string;
+}
 
-## What is Calibration?
+// ─── Helpers ──────────────────────────────────────────────────────
+const getAuthorName = (author: BlogPostData["author"]): string =>
+  typeof author === "object" ? author.name : author;
 
-Calibration is the process of comparing a measurement instrument's readings against a known standard to identify and correct any deviations. This ensures that your instruments provide accurate and reliable measurements consistently.
+const getImage = (post: BlogPostData | RelatedPost): string =>
+  (post as BlogPostData).featuredImage ?? (post as BlogPostData).imageUrl ?? "";
 
-## Why Regular Calibration Matters
-
-### 1. Measurement Accuracy
-
-Over time, all instruments experience drift—a gradual change in their measurement accuracy. Environmental factors, mechanical wear, and electronic component aging all contribute to this phenomenon. Regular calibration identifies and corrects these deviations before they impact your operations.
-
-### 2. Regulatory Compliance
-
-Many industries are subject to strict regulatory requirements that mandate regular calibration of measurement equipment. In Nigeria, industries such as oil and gas, pharmaceuticals, and food processing must adhere to both local and international standards.
-
-### 3. Quality Assurance
-
-Accurate measurements are fundamental to product quality. In manufacturing, even small measurement errors can lead to defective products, costly recalls, and damaged reputation.
-
-### 4. Safety
-
-In critical applications, measurement accuracy can be a matter of safety. Pressure gauges in industrial processes, temperature sensors in pharmaceutical storage, and flow meters in chemical handling all require precise calibration to prevent accidents.
-
-## Recommended Calibration Intervals
-
-The appropriate calibration interval depends on several factors:
-
-- **Instrument type and manufacturer recommendations**
-- **Frequency of use**
-- **Environmental conditions**
-- **Criticality of measurements**
-- **Historical drift data**
-
-As a general guideline, most instruments should be calibrated annually, with more frequent calibration for critical applications or instruments in harsh environments.
-
-## Choosing a Calibration Partner
-
-When selecting a calibration service provider, consider:
-
-1. **Accreditation**: Look for ISO 17025 accredited laboratories
-2. **Experience**: Industry-specific expertise matters
-3. **Traceability**: Ensure measurements are traceable to national or international standards
-4. **Turnaround time**: Minimize equipment downtime
-5. **Documentation**: Comprehensive calibration certificates
-
-## Conclusion
-
-Regular calibration is an investment in accuracy, compliance, and safety. By maintaining a consistent calibration schedule, you protect your operations, your products, and your reputation.
-
-At Darafunmi Precision Technologies, we provide ISO-compliant calibration services across Nigeria. Contact us today to discuss your calibration needs.
-  `,
-  author: "Dr. Adeyemi Okonkwo",
-  authorBio: "Chief Technical Officer at Darafunmi Precision Technologies with over 15 years of experience in metrology and calibration.",
-  category: "calibration",
-  tags: ["calibration", "accuracy", "compliance", "quality assurance"],
-  imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=600&fit=crop",
-  readTime: "5 min read",
-  publishedAt: "2024-01-20",
+const getDate = (post: BlogPostData | RelatedPost): string => {
+  const raw = (post as BlogPostData).publishedAt ?? (post as BlogPostData).createdAt;
+  return raw ? new Date(raw).toLocaleDateString() : "";
 };
-
-const relatedPosts = [
-  {
-    id: 2,
-    slug: "iso-17025-certification-guide",
-    title: "Understanding ISO 17025 Certification Requirements",
-    imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=300&h=200&fit=crop",
-    publishedAt: "2024-01-15",
-  },
-  {
-    id: 3,
-    slug: "temperature-calibration-best-practices",
-    title: "Best Practices for Temperature Calibration",
-    imageUrl: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=300&h=200&fit=crop",
-    publishedAt: "2024-01-01",
-  },
-];
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  
-  const { data: post, isLoading } = useQuery({
+
+  const {
+    data: post,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery<BlogPostData>({
     queryKey: ["blog", slug],
-    queryFn: () => api.get(`/blog/${slug}`).then((r) => r.data?.data ?? r.data),
+    queryFn: () =>
+      api.get(`/blog/${slug}`).then((r) => r.data?.data ?? r.data),
     enabled: !!slug,
   });
 
-  const displayPost = post || demoBlogPost;
+  const { data: relatedPosts = [] } = useQuery<RelatedPost[]>({
+    queryKey: ["blog", "related", post?.category],
+    queryFn: () =>
+      api
+        .get("/blog", {
+          params: {
+            category: post!.category,
+            limit: 3,
+            status: "published",
+          },
+        })
+        .then((r) => {
+          const list: BlogPostData[] = r.data?.data ?? r.data ?? [];
+          // Exclude the current post
+          return list.filter((p) => p.id !== post!.id).slice(0, 2);
+        }),
+    enabled: !!post?.category,
+  });
 
+  // ── Loading ────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </main>
         <Footer />
       </div>
     );
   }
 
+  // ── Error ──────────────────────────────────────────────────────
+  if (isError || !post) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex flex-col items-center justify-center gap-4 text-center py-24">
+          <AlertTriangle className="h-10 w-10 text-muted-foreground" />
+          <p className="font-medium text-gray-700">Failed to load this article</p>
+          <p className="text-sm text-muted-foreground">
+            It may have been moved or the connection failed.
+          </p>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => refetch()}>
+              Retry
+            </Button>
+            <Link href="/blog">
+              <Button variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Blog
+              </Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Share helpers ──────────────────────────────────────────────
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareTitle = encodeURIComponent(post.title);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
         {/* Hero Image */}
         <div className="relative h-[400px] md:h-[500px]">
           <img
-            src={(displayPost as any).imageUrl}
-            alt={(displayPost as any).title}
+            src={getImage(post)}
+            alt={post.title}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -149,23 +159,25 @@ export default function BlogPost() {
                   Back to Blog
                 </Button>
               </Link>
-              <Badge className="mb-4 capitalize">{(displayPost as any).category}</Badge>
+              <Badge className="mb-4 capitalize">{post.category}</Badge>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-                {(displayPost as any).title}
+                {post.title}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-white/80">
                 <span className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  {(displayPost as any).author}
+                  {getAuthorName(post.author)}
                 </span>
                 <span className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  {new Date((displayPost as any).publishedAt).toLocaleDateString()}
+                  {getDate(post)}
                 </span>
-                <span className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  {(displayPost as any).readTime}
-                </span>
+                {post.readTime && (
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {post.readTime}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -177,36 +189,72 @@ export default function BlogPost() {
             <div className="grid lg:grid-cols-3 gap-12">
               {/* Main Content */}
               <div className="lg:col-span-2">
-                <article className="prose prose-lg max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: (displayPost as any).content?.replace(/\n/g, '<br/>') || '' }} />
-                </article>
+                <article
+                  className="prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{
+                    __html: post.content?.replace(/\n/g, "<br/>") ?? "",
+                  }}
+                />
 
                 {/* Tags */}
-                <div className="mt-8 pt-8 border-t">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Tag className="h-4 w-4 text-muted-foreground" />
-                    {((displayPost as any).tags || []).map((tag: string) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="mt-8 pt-8 border-t">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      {post.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Share */}
                 <div className="mt-8 pt-8 border-t">
                   <p className="font-semibold mb-4">Share this article</p>
                   <div className="flex gap-3">
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                          "_blank"
+                        )
+                      }
+                    >
                       <Facebook className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${shareTitle}`,
+                          "_blank"
+                        )
+                      }
+                    >
                       <Twitter className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        window.open(
+                          `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                          "_blank"
+                        )
+                      }
+                    >
                       <Linkedin className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigator.clipboard.writeText(shareUrl)}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -219,40 +267,48 @@ export default function BlogPost() {
                 <Card>
                   <CardContent className="p-6">
                     <p className="font-semibold mb-2">About the Author</p>
-                    <p className="text-lg font-medium mb-2">{(displayPost as any).author}</p>
+                    <p className="text-lg font-medium mb-2">
+                      {getAuthorName(post.author)}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      {(displayPost as any).authorBio || "Expert contributor at Darafunmi Precision Technologies."}
+                      {post.authorBio ??
+                        "Expert contributor at Darafunmi Precision Technologies."}
                     </p>
                   </CardContent>
                 </Card>
 
                 {/* Related Posts */}
-                <Card>
-                  <CardContent className="p-6">
-                    <p className="font-semibold mb-4">Related Articles</p>
-                    <div className="space-y-4">
-                      {relatedPosts.map((relatedPost) => (
-                        <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
-                          <div className="flex gap-4 group cursor-pointer">
-                            <img
-                              src={relatedPost.imageUrl}
-                              alt={relatedPost.title}
-                              className="w-20 h-16 object-cover rounded"
-                            />
-                            <div>
-                              <p className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                                {relatedPost.title}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {new Date(relatedPost.publishedAt).toLocaleDateString()}
-                              </p>
+                {relatedPosts.length > 0 && (
+                  <Card>
+                    <CardContent className="p-6">
+                      <p className="font-semibold mb-4">Related Articles</p>
+                      <div className="space-y-4">
+                        {relatedPosts.map((related) => (
+                          <Link
+                            key={related.id}
+                            href={`/blog/${related.slug ?? related.id}`}
+                          >
+                            <div className="flex gap-4 group cursor-pointer">
+                              <img
+                                src={getImage(related)}
+                                alt={related.title}
+                                className="w-20 h-16 object-cover rounded"
+                              />
+                              <div>
+                                <p className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
+                                  {related.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {getDate(related)}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                          </Link>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* CTA */}
                 <Card className="gradient-cta text-white">
