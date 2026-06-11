@@ -26,6 +26,8 @@ import {
   Quote,
   Phone,
   ChevronRight,
+  Calendar,
+  User,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -388,48 +390,78 @@ export default function Home() {
                 Stay updated with the latest industry news, tips, and company updates.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* Demo blog posts */}
-              {[
-                {
-                  title: "Understanding ISO 17025 Calibration Standards",
-                  excerpt: "A comprehensive guide to ISO 17025 requirements and how they ensure calibration quality.",
-                  category: "Industry Standards",
-                  date: "Jan 15, 2026",
-                },
-                {
-                  title: "The Importance of Regular Equipment Calibration",
-                  excerpt: "Learn why regular calibration is crucial for maintaining accuracy in your measurements.",
-                  category: "Best Practices",
-                  date: "Jan 10, 2026",
-                },
-                {
-                  title: "New Training Programs for 2026",
-                  excerpt: "Announcing our expanded training curriculum for process control engineers.",
-                  category: "Company News",
-                  date: "Jan 5, 2026",
-                },
-              ].map((post, index) => (
-                <Card key={index} className="card-hover overflow-hidden">
-                  <div className="h-48 bg-gradient-to-br from-primary/20 to-secondary/20" />
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="secondary" className="text-xs">{post.category}</Badge>
-                      <span className="text-xs text-muted-foreground">{post.date}</span>
+
+            {/* Loading */}
+            {!blogPosts && (
+              <div className="grid md:grid-cols-3 gap-8">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="overflow-hidden animate-pulse">
+                    <div className="h-48 bg-muted" />
+                    <CardHeader>
+                      <div className="h-4 w-24 bg-muted rounded mb-2" />
+                      <div className="h-5 w-full bg-muted rounded" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-4 w-full bg-muted rounded mb-2" />
+                      <div className="h-4 w-3/4 bg-muted rounded" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Posts */}
+            {blogPosts && blogPosts.length > 0 && (
+              <div className="grid md:grid-cols-3 gap-8">
+                {blogPosts.map((post: any) => (
+                  <Card key={post.id} className="card-hover overflow-hidden">
+                    <div className="h-48 overflow-hidden">
+                      {post.featuredImage ?? post.imageUrl ? (
+                        <img
+                          src={post.featuredImage ?? post.imageUrl}
+                          alt={post.title}
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
+                      )}
                     </div>
-                    <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
-                    <Link href="/blog">
-                      <Button variant="link" className="px-0 mt-4">
-                        Read More <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary" className="text-xs capitalize">
+                          {post.category}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {typeof post.author === "object" ? post.author?.name : post.author}
+                        </span>
+                        <Link href={`/blog/${post.slug ?? post.id}`}>
+                          <Button variant="link" className="px-0">
+                            Read More <ChevronRight className="h-4 w-4 ml-1" />
+                          </Button>
+                        </Link>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {blogPosts && blogPosts.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">No blog posts available yet.</p>
+            )}
+
             <div className="text-center mt-12">
               <Link href="/blog">
                 <Button variant="outline" size="lg">

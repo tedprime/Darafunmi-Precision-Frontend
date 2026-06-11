@@ -331,6 +331,8 @@ export default function BlogPost() {
       </main>
 
       <Footer />
-    </div>
+    </div> 
   );
-}
+} 
+
+
