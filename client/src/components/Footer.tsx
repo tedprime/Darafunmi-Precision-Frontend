@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Phone,
   Mail,
@@ -46,7 +47,7 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [unsubEmail, setUnsubEmail] = useState("");
   const [showUnsub, setShowUnsub] = useState(false);
-
+const { user } = useAuth();
   const subscribeMutation = useMutation({
     mutationFn: (data: { email: string; name?: string }) =>
       api.post("/newsletter/subscribe", data).then((r) => r.data?.data ?? r.data),
@@ -78,7 +79,7 @@ export default function Footer() {
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) subscribeMutation.mutate({ email });
+    if (email) subscribeMutation.mutate({ email, name: user?.name });
   };
 
   return (
