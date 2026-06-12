@@ -1,107 +1,37 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
   ArrowRight,
   Building2,
-  TrendingUp,
   Clock,
   CheckCircle2,
-  Factory,
-  Droplets,
-  Pill,
-  Leaf,
+  AlertTriangle,
+  TrendingUp,
 } from "lucide-react";
 
-const caseStudies = [
-  {
-    id: 1,
-    slug: "oil-gas-calibration-optimization",
-    title: "Reducing Equipment Downtime by 40% for Major Oil Company",
-    client: "Leading Nigerian Oil & Gas Company",
-    industry: "Oil & Gas",
-    icon: Droplets,
-    challenge: "The client was experiencing frequent equipment failures due to inaccurate pressure and temperature readings, resulting in costly production shutdowns.",
-    solution: "Implemented a comprehensive calibration program with predictive maintenance scheduling and on-site calibration services.",
-    results: [
-      "40% reduction in unplanned downtime",
-      "25% decrease in maintenance costs",
-      "99.9% measurement accuracy achieved",
-      "ROI realized within 6 months",
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=600&h=400&fit=crop",
-    duration: "12 months",
-    year: "2023",
-  },
-  {
-    id: 2,
-    slug: "pharmaceutical-compliance",
-    title: "Achieving FDA Compliance for Pharmaceutical Manufacturer",
-    client: "Major Pharmaceutical Company",
-    industry: "Pharmaceutical",
-    icon: Pill,
-    challenge: "The pharmaceutical manufacturer needed to meet strict FDA and NAFDAC requirements for their laboratory and production equipment calibration.",
-    solution: "Provided ISO 17025 accredited calibration services with comprehensive documentation and traceability to international standards.",
-    results: [
-      "100% FDA audit compliance",
-      "Zero non-conformances in NAFDAC inspection",
-      "Reduced calibration turnaround by 50%",
-      "Complete documentation system implemented",
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1585435557343-3b092031a831?w=600&h=400&fit=crop",
-    duration: "8 months",
-    year: "2023",
-  },
-  {
-    id: 3,
-    slug: "manufacturing-quality-improvement",
-    title: "Improving Product Quality by 35% for Manufacturing Plant",
-    client: "Industrial Manufacturing Company",
-    industry: "Manufacturing",
-    icon: Factory,
-    challenge: "High defect rates in production due to measurement inconsistencies across multiple production lines.",
-    solution: "Calibrated all measurement equipment, implemented standardized procedures, and trained staff on proper equipment handling.",
-    results: [
-      "35% reduction in product defects",
-      "20% increase in production efficiency",
-      "Standardized measurement procedures",
-      "Staff trained and certified",
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&h=400&fit=crop",
-    duration: "6 months",
-    year: "2022",
-  },
-  {
-    id: 4,
-    slug: "environmental-monitoring",
-    title: "Environmental Monitoring System for Research Institute",
-    client: "Government Research Institute",
-    industry: "Environmental",
-    icon: Leaf,
-    challenge: "Required accurate and reliable environmental monitoring equipment for air and water quality research projects.",
-    solution: "Calibrated all environmental monitoring sensors and established a regular calibration schedule with on-site support.",
-    results: [
-      "Research data accuracy improved to 99.5%",
-      "Regulatory compliance achieved",
-      "Long-term calibration partnership established",
-      "Custom calibration protocols developed",
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&h=400&fit=crop",
-    duration: "Ongoing",
-    year: "2022",
-  },
-];
-
 export default function CaseStudies() {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["case-studies", "list"],
+    queryFn: () =>
+      api
+        .get("/case-studies", { params: { limit: 20, status: "published" } })
+        .then((r) => r.data?.data ?? r.data),
+  });
+
+  const caseStudies = data ?? [];
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      
+
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Hero */}
         <section className="relative gradient-hero py-16 md:py-24">
           <div className="container">
             <div className="max-w-3xl">
@@ -110,7 +40,7 @@ export default function CaseStudies() {
                 Success <span className="text-primary">Stories</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                Discover how we've helped organizations across Nigeria achieve 
+                Discover how we've helped organisations across Nigeria achieve
                 measurement excellence and operational efficiency.
               </p>
             </div>
@@ -121,22 +51,17 @@ export default function CaseStudies() {
         <section className="py-12 bg-muted/30">
           <div className="container">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">50+</p>
-                <p className="text-muted-foreground">Projects Completed</p>
-              </div>
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">98%</p>
-                <p className="text-muted-foreground">Client Satisfaction</p>
-              </div>
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">35%</p>
-                <p className="text-muted-foreground">Avg. Efficiency Gain</p>
-              </div>
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary">10+</p>
-                <p className="text-muted-foreground">Industries Served</p>
-              </div>
+              {[
+                { value: "50+", label: "Projects Completed" },
+                { value: "98%", label: "Client Satisfaction" },
+                { value: "35%", label: "Avg. Efficiency Gain" },
+                { value: "10+", label: "Industries Served" },
+              ].map((s) => (
+                <div key={s.label} className="text-center">
+                  <p className="text-4xl font-bold text-primary">{s.value}</p>
+                  <p className="text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -144,60 +69,117 @@ export default function CaseStudies() {
         {/* Case Studies */}
         <section className="section">
           <div className="container">
-            <div className="space-y-12">
-              {caseStudies.map((study, index) => (
-                <Card key={study.id} className="overflow-hidden">
-                  <div className={`grid md:grid-cols-2 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
-                    <div className={`aspect-video md:aspect-auto ${index % 2 === 1 ? 'md:order-2' : ''}`}>
-                      <img
-                        src={study.imageUrl}
-                        alt={study.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className={`p-8 flex flex-col justify-center ${index % 2 === 1 ? 'md:order-1' : ''}`}>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Badge variant="secondary" className="gap-1">
-                          <study.icon className="h-3 w-3" />
-                          {study.industry}
-                        </Badge>
-                        <Badge variant="outline">{study.year}</Badge>
-                      </div>
-                      <h2 className="text-2xl font-bold mb-4">{study.title}</h2>
-                      <p className="text-muted-foreground mb-4">{study.challenge}</p>
-                      
-                      <div className="mb-6">
-                        <p className="font-semibold mb-2">Key Results:</p>
-                        <ul className="space-y-2">
-                          {study.results.slice(0, 3).map((result, i) => (
-                            <li key={i} className="flex items-center gap-2 text-sm">
-                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                              {result}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
 
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-4 w-4" />
-                          {study.client}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {study.duration}
-                        </span>
-                      </div>
+            {/* Loading */}
+            {isLoading && (
+              <div className="flex justify-center items-center py-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            )}
 
-                      <Button className="w-fit">
-                        Read Full Case Study
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+            {/* Error */}
+            {isError && (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <AlertTriangle className="h-10 w-10 text-muted-foreground mb-4" />
+                <p className="font-medium text-gray-700">Failed to load case studies</p>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                  Please check your connection and try again.
+                </p>
+                <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+              </div>
+            )}
+
+            {/* Empty */}
+            {!isLoading && !isError && caseStudies.length === 0 && (
+              <div className="text-center py-24 text-muted-foreground">
+                No case studies found.
+              </div>
+            )}
+
+            {/* Content */}
+            {!isLoading && !isError && caseStudies.length > 0 && (
+              <div className="space-y-12">
+                {caseStudies.map((study: any, index: number) => (
+                  <Card key={study.id} className="overflow-hidden">
+                    <div className="grid md:grid-cols-2">
+                      <div className={`aspect-video md:aspect-auto ${index % 2 === 1 ? "md:order-2" : ""}`}>
+                        {study.imageUrl ?? study.featuredImage ? (
+                          <img
+                            src={study.imageUrl ?? study.featuredImage}
+                            alt={study.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full min-h-[240px] bg-gradient-to-br from-primary/20 to-secondary/20" />
+                        )}
+                      </div>
+                      <div className={`p-8 flex flex-col justify-center ${index % 2 === 1 ? "md:order-1" : ""}`}>
+                        <div className="flex items-center gap-2 mb-4">
+                          {study.industry && (
+                            <Badge variant="secondary">{study.industry}</Badge>
+                          )}
+                          {study.year && (
+                            <Badge variant="outline">{study.year}</Badge>
+                          )}
+                        </div>
+
+                        <h2 className="text-2xl font-bold mb-3">{study.title}</h2>
+
+                        <p className="text-muted-foreground mb-5">
+                          {study.challenge ?? study.excerpt ?? study.description}
+                        </p>
+
+                        {/* Results — handle both array and newline-separated string */}
+                        {study.results && (
+                          <div className="mb-6">
+                            <p className="font-semibold mb-2">Key Results:</p>
+                            <ul className="space-y-2">
+                              {(Array.isArray(study.results)
+                                ? study.results
+                                : String(study.results).split("\n").filter(Boolean)
+                              ).slice(0, 3).map((result: string, i: number) => (
+                                <li key={i} className="flex items-center gap-2 text-sm">
+                                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  {result}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
+                          {study.client && (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="h-4 w-4" />
+                              {study.client}
+                            </span>
+                          )}
+                          {study.duration && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              {study.duration}
+                            </span>
+                          )}
+                          {study.metric && (
+                            <span className="flex items-center gap-1">
+                              <TrendingUp className="h-4 w-4" />
+                              {study.metric}
+                            </span>
+                          )}
+                        </div>
+
+                        <Link href={`/case-studies/${study.slug ?? study.id}`}>
+                          <Button className="w-fit">
+                            Read Full Case Study
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -213,9 +195,7 @@ export default function CaseStudies() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link href="/quote">
-                    <Button size="lg" variant="secondary">
-                      Get a Quote
-                    </Button>
+                    <Button size="lg" variant="secondary">Get a Quote</Button>
                   </Link>
                   <Link href="/contact">
                     <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">

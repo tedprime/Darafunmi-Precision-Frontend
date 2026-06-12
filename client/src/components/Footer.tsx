@@ -44,6 +44,9 @@ const industries = [
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const [unsubEmail, setUnsubEmail] = useState("");
+  const [showUnsub, setShowUnsub] = useState(false);
+
   const subscribeMutation = useMutation({
     mutationFn: (data: { email: string; name?: string }) =>
       api.post("/newsletter/subscribe", data).then((r) => r.data?.data ?? r.data),
@@ -60,11 +63,22 @@ export default function Footer() {
     },
   });
 
+  const unsubscribeMutation = useMutation({
+    mutationFn: (email: string) =>
+      api.post("/newsletter/unsubscribe", { email }).then((r) => r.data),
+    onSuccess: () => {
+      toast.success("You've been unsubscribed.");
+      setUnsubEmail("");
+      setShowUnsub(false);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to unsubscribe. Please try again.");
+    },
+  });
+
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      subscribeMutation.mutate({ email });
-    }
+    if (email) subscribeMutation.mutate({ email });
   };
 
   return (
@@ -90,8 +104,8 @@ export default function Footer() {
                 className="w-full md:w-80 bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/60"
                 required
               />
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 variant="secondary"
                 disabled={subscribeMutation.isPending}
               >
@@ -118,7 +132,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-background/70 mb-6 max-w-sm">
-              Process Control Engineers & Calibration Contractors. Delivering accuracy, 
+              Process Control Engineers & Calibration Contractors. Delivering accuracy,
               effectiveness, and competency since 2006.
             </p>
             <div className="space-y-3">
@@ -218,18 +232,54 @@ export default function Footer() {
             </a>
           </div>
 
-          {/* Legal Links */}
-          <div className="flex items-center gap-6 text-sm">
-            <Link href="/privacy">
-              <span className="text-background/60 hover:text-background transition-colors">
-                Privacy Policy
-              </span>
-            </Link>
-            <Link href="/terms">
-              <span className="text-background/60 hover:text-background transition-colors">
-                Terms of Service
-              </span>
-            </Link>
+          {/* Legal Links + Unsubscribe */}
+          <div className="flex flex-col items-center md:items-end gap-3 text-sm">
+            <div className="flex items-center gap-6">
+              <Link href="/privacy">
+                <span className="text-background/60 hover:text-background transition-colors">
+                  Privacy Policy
+                </span>
+              </Link>
+              <Link href="/terms">
+                <span className="text-background/60 hover:text-background transition-colors">
+                  Terms of Service
+                </span>
+              </Link>
+              <button
+                onClick={() => setShowUnsub((v) => !v)}
+                className="text-background/60 hover:text-background transition-colors"
+              >
+                Unsubscribe
+              </button>
+            </div>
+
+            {showUnsub && (
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={unsubEmail}
+                  onChange={(e) => setUnsubEmail(e.target.value)}
+                  className="w-52 bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/60 h-8 text-sm"
+                />
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={!unsubEmail || unsubscribeMutation.isPending}
+                  onClick={() => unsubEmail && unsubscribeMutation.mutate(unsubEmail)}
+                >
+                  {unsubscribeMutation.isPending ? "…" : "Confirm"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => { setShowUnsub(false); setUnsubEmail(""); }}
+                  className="text-background/60 hover:text-background"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
