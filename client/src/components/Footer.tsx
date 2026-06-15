@@ -47,11 +47,11 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [unsubEmail, setUnsubEmail] = useState("");
   const [showUnsub, setShowUnsub] = useState(false);
-const { user } = useAuth();
+  const { user } = useAuth();
   const subscribeMutation = useMutation({
     mutationFn: (data: { email: string; name?: string }) =>
-      api.post("/newsletter/subscribe", data).then((r) => r.data?.data ?? r.data),
-    onSuccess: (result) => {
+      api.post("/newsletter/subscribe", data).then(r => r.data?.data ?? r.data),
+    onSuccess: result => {
       if (result.success) {
         toast.success("Successfully subscribed to our newsletter!");
         setEmail("");
@@ -66,7 +66,7 @@ const { user } = useAuth();
 
   const unsubscribeMutation = useMutation({
     mutationFn: (email: string) =>
-      api.post("/newsletter/unsubscribe", { email }).then((r) => r.data),
+      api.post("/newsletter/unsubscribe", { email }).then(r => r.data),
     onSuccess: () => {
       toast.success("You've been unsubscribed.");
       setUnsubEmail("");
@@ -96,12 +96,15 @@ const { user } = useAuth();
                 Stay updated with the latest industry news and company updates
               </p>
             </div>
-            <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex w-full md:w-auto gap-2"
+            >
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 className="w-full md:w-80 bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/60"
                 required
               />
@@ -125,27 +128,44 @@ const { user } = useAuth();
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary">
-                <span className="text-primary-foreground font-bold text-2xl">D</span>
+                <span className="text-primary-foreground font-bold text-2xl">
+                  D
+                </span>
               </div>
               <div>
-                <span className="font-bold text-xl text-background">Darafunmi</span>
-                <span className="block text-sm text-background/60">Precision Technologies Ltd</span>
+                <span className="font-bold text-xl text-background">
+                  Darafunmi
+                </span>
+                <span className="block text-sm text-background/60">
+                  Precision Technologies Ltd
+                </span>
               </div>
             </div>
             <p className="text-background/70 mb-6 max-w-sm">
-              Process Control Engineers & Calibration Contractors. Delivering accuracy,
-              effectiveness, and competency since 2006.
+              Process Control Engineers & Calibration Contractors. Delivering
+              accuracy, effectiveness, and competency since 2006.
             </p>
             <div className="space-y-3">
-              <a href="tel:+2348034680544" className="flex items-center gap-3 text-background/70 hover:text-background transition-colors">
+              <a
+                href="tel:+2348034680544"
+                className="flex items-center gap-3 text-background/70 hover:text-background transition-colors"
+              >
                 <Phone className="h-5 w-5 text-primary" />
                 <span>+234 803 468 0544</span>
               </a>
-              <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center gap-3 text-background/70 hover:text-background transition-colors">
+              <a
+                href="mailto:darafunmi2013@yahoo.com"
+                className="flex items-center gap-3 text-background/70 hover:text-background transition-colors"
+              >
                 <Mail className="h-5 w-5 text-primary" />
                 <span>darafunmi2013@yahoo.com</span>
               </a>
-              <a href="https://wa.me/12044308339" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-background/70 hover:text-background transition-colors">
+              <a
+                href="https://wa.me/12044308339"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-background/70 hover:text-background transition-colors"
+              >
                 <MessageCircle className="h-5 w-5 text-green-500" />
                 <span>WhatsApp: +1 204 430 8339</span>
               </a>
@@ -158,9 +178,11 @@ const { user } = useAuth();
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold text-lg mb-6 text-background">Quick Links</h4>
+            <h4 className="font-semibold text-lg mb-6 text-background">
+              Quick Links
+            </h4>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {quickLinks.map(link => (
                 <li key={link.title}>
                   <Link href={link.href}>
                     <span className="text-background/70 hover:text-background transition-colors">
@@ -174,9 +196,11 @@ const { user } = useAuth();
 
           {/* Services */}
           <div>
-            <h4 className="font-semibold text-lg mb-6 text-background">Our Services</h4>
+            <h4 className="font-semibold text-lg mb-6 text-background">
+              Our Services
+            </h4>
             <ul className="space-y-3">
-              {services.map((service) => (
+              {services.map(service => (
                 <li key={service.title}>
                   <Link href={service.href}>
                     <span className="text-background/70 hover:text-background transition-colors">
@@ -190,9 +214,11 @@ const { user } = useAuth();
 
           {/* Industries */}
           <div>
-            <h4 className="font-semibold text-lg mb-6 text-background">Industries</h4>
+            <h4 className="font-semibold text-lg mb-6 text-background">
+              Industries
+            </h4>
             <ul className="space-y-3">
-              {industries.map((industry) => (
+              {industries.map(industry => (
                 <li key={industry.title}>
                   <Link href={industry.href}>
                     <span className="text-background/70 hover:text-background transition-colors">
@@ -210,25 +236,48 @@ const { user } = useAuth();
         {/* Bottom Footer */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="text-background/60 text-sm text-center md:text-left">
-            <p>© {new Date().getFullYear()} Darafunmi Precision Technologies Ltd. All rights reserved.</p>
+            <p>
+              © {new Date().getFullYear()} Darafunmi Precision Technologies
+              Ltd. All rights reserved.
+            </p>
             <p className="mt-1">Established April 2006</p>
           </div>
 
           {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a href="#" className="text-background/60 hover:text-background transition-colors" aria-label="Facebook">
+            <a
+              href="#"
+              className="text-background/60 hover:text-background transition-colors"
+              aria-label="Facebook"
+            >
               <Facebook className="h-5 w-5" />
             </a>
-            <a href="#" className="text-background/60 hover:text-background transition-colors" aria-label="Twitter">
+            <a
+              href="#"
+              className="text-background/60 hover:text-background transition-colors"
+              aria-label="Twitter"
+            >
               <Twitter className="h-5 w-5" />
             </a>
-            <a href="#" className="text-background/60 hover:text-background transition-colors" aria-label="LinkedIn">
+            <a
+              href="#"
+              className="text-background/60 hover:text-background transition-colors"
+              aria-label="LinkedIn"
+            >
               <Linkedin className="h-5 w-5" />
             </a>
-            <a href="#" className="text-background/60 hover:text-background transition-colors" aria-label="Instagram">
+            <a
+              href="#"
+              className="text-background/60 hover:text-background transition-colors"
+              aria-label="Instagram"
+            >
               <Instagram className="h-5 w-5" />
             </a>
-            <a href="#" className="text-background/60 hover:text-background transition-colors" aria-label="YouTube">
+            <a
+              href="#"
+              className="text-background/60 hover:text-background transition-colors"
+              aria-label="YouTube"
+            >
               <Youtube className="h-5 w-5" />
             </a>
           </div>
@@ -247,7 +296,7 @@ const { user } = useAuth();
                 </span>
               </Link>
               <button
-                onClick={() => setShowUnsub((v) => !v)}
+                onClick={() => setShowUnsub(v => !v)}
                 className="text-background/60 hover:text-background transition-colors"
               >
                 Unsubscribe
@@ -260,21 +309,26 @@ const { user } = useAuth();
                   type="email"
                   placeholder="your@email.com"
                   value={unsubEmail}
-                  onChange={(e) => setUnsubEmail(e.target.value)}
+                  onChange={e => setUnsubEmail(e.target.value)}
                   className="w-52 bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/60 h-8 text-sm"
                 />
                 <Button
                   size="sm"
                   variant="destructive"
                   disabled={!unsubEmail || unsubscribeMutation.isPending}
-                  onClick={() => unsubEmail && unsubscribeMutation.mutate(unsubEmail)}
+                  onClick={() =>
+                    unsubEmail && unsubscribeMutation.mutate(unsubEmail)
+                  }
                 >
                   {unsubscribeMutation.isPending ? "…" : "Confirm"}
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => { setShowUnsub(false); setUnsubEmail(""); }}
+                  onClick={() => {
+                    setShowUnsub(false);
+                    setUnsubEmail("");
+                  }}
                   className="text-background/60 hover:text-background"
                 >
                   Cancel
