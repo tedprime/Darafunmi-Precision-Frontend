@@ -193,10 +193,10 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          {/* FIX: Added 'h-full max-h-screen overflow-hidden' to ensure 
-            content flows logically instead of stacking visually out of bounds.
+          {/* FIX: Changed 'overflow-hidden' to 'overflow-y-auto' to allow scrolling
+            when content exceeds viewport height, preventing overlap of elements.
           */}
-          <div className="flex h-full max-h-screen w-full flex-col overflow-hidden">
+          <div className="flex h-full max-h-screen w-full flex-col overflow-y-auto">
             {children}
           </div>
         </SheetContent>
