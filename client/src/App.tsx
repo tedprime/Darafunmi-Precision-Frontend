@@ -28,6 +28,7 @@ import Dashboard from "./pages/Dashboard";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import Login from "./pages/Login";
+import QuoteRespond from "./pages/QuoteRespond";
 import ScrollToTop from "./components/ScrollToTop";
 
 function Router() {
@@ -58,6 +59,7 @@ function Router() {
         {/* Contact & Quotes */}
         <Route path="/contact" component={Contact} />
         <Route path="/quote" component={Quote} />
+        <Route path="/quotes/respond/:quoteNumber" component={QuoteRespond} />
         <Route path="/book-service" component={BookService} />
 
         {/* Resources */}
