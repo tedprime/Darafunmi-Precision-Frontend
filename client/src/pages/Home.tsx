@@ -28,76 +28,34 @@ import {
   ChevronRight,
   Calendar,
   User,
+  Cog,
+  FlaskConical,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Demo data for testimonials
-const testimonials = [
-  {
-    id: 1,
-    customerName: "Dr. Adebayo Johnson",
-    customerTitle: "Quality Assurance Director",
-    companyName: "PharmaCare Nigeria Ltd",
-    industry: "Pharmaceutical",
-    content: "Darafunmi Precision Technologies has been our trusted calibration partner for over 5 years. Their attention to detail and commitment to ISO standards is exceptional.",
-    rating: 5,
-  },
-  {
-    id: 2,
-    customerName: "Engr. Chioma Okafor",
-    customerTitle: "Plant Manager",
-    companyName: "Nigerian Bottling Company",
-    industry: "Beverages",
-    content: "The team's expertise in process control instruments has significantly improved our production efficiency. Highly recommended for any manufacturing facility.",
-    rating: 5,
-  },
-  {
-    id: 3,
-    customerName: "Mr. Ibrahim Hassan",
-    customerTitle: "HSE Manager",
-    companyName: "Total E&P Nigeria",
-    industry: "Oil and Gas",
-    content: "Their on-site calibration services have minimized our equipment downtime. Professional, reliable, and always on schedule.",
-    rating: 5,
-  },
-];
+// Icon map for services (matched by slug or icon field from DB)
+const serviceIconMap: Record<string, React.ElementType> = {
+  calibration: Microscope,
+  maintenance: Wrench,
+  repair:      Cog,
+  training:    GraduationCap,
+  consulting:  Target,
+  default:     FlaskConical,
+};
+const getServiceIcon = (slug = "", icon = ""): React.ElementType => {
+  if (serviceIconMap[icon]) return serviceIconMap[icon];
+  const key = Object.keys(serviceIconMap).find((k) => slug.includes(k) || icon.includes(k));
+  return key ? serviceIconMap[key] : serviceIconMap.default;
+};
 
-// Demo services
-const services = [
-  {
-    icon: Microscope,
-    title: "Calibration Services",
-    description: "ISO-compliant calibration of laboratory and medical equipment with traceable standards",
-    href: "/services/calibration",
-  },
-  {
-    icon: Wrench,
-    title: "Maintenance & Repair",
-    description: "Comprehensive maintenance and repair services for process analytical instruments",
-    href: "/services/maintenance",
-  },
-  {
-    icon: GraduationCap,
-    title: "Training Programs",
-    description: "Technical training for equipment operation and calibration procedures",
-    href: "/services/training",
-  },
-  {
-    icon: Target,
-    title: "Consulting Services",
-    description: "Process optimization and compliance consulting for various industries",
-    href: "/services/consulting",
-  },
-];
-
-// Industries served
+// Static industry list — icons can't come from the DB
 const industries = [
-  { icon: Pill, name: "Pharmaceutical", href: "/industries/pharmaceutical", color: "bg-blue-500" },
-  { icon: Factory, name: "Manufacturing", href: "/industries/manufacturing", color: "bg-gray-500" },
-  { icon: Droplets, name: "Oil and Gas", href: "/industries/oil-and-gas", color: "bg-amber-500" },
-  { icon: Ship, name: "Marine", href: "/industries/marine", color: "bg-cyan-500" },
-  { icon: Package, name: "Beverages", href: "/industries/beverages", color: "bg-green-500" },
-  { icon: Package, name: "Packaging", href: "/industries/packaging", color: "bg-purple-500" },
+  { icon: Pill,     name: "Pharmaceutical", href: "/industries/pharmaceutical", color: "bg-blue-500"   },
+  { icon: Factory,  name: "Manufacturing",  href: "/industries/manufacturing",  color: "bg-gray-500"   },
+  { icon: Droplets, name: "Oil and Gas",    href: "/industries/oil-and-gas",    color: "bg-amber-500"  },
+  { icon: Ship,     name: "Marine",         href: "/industries/marine",         color: "bg-cyan-500"   },
+  { icon: Package,  name: "Beverages",      href: "/industries/beverages",      color: "bg-green-500"  },
+  { icon: Package,  name: "Packaging",      href: "/industries/packaging",      color: "bg-purple-500" },
 ];
 
 // Stats
@@ -113,6 +71,40 @@ export default function Home() {
     queryKey: ["blog", "list", 3],
     queryFn: () => api.get("/blog", { params: { limit: 3, status: "published" } }).then((r) => r.data?.data ?? r.data),
   });
+
+  const { data: apiServices } = useQuery({
+    queryKey: ["services", "home"],
+    queryFn: () => api.get("/services", { params: { isActive: "true", limit: 4 } }).then((r) => r.data?.data ?? r.data),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const { data: apiTestimonials } = useQuery({
+    queryKey: ["testimonials", "home"],
+    queryFn: () => api.get("/testimonials").then((r) => {
+      const all = r.data?.data ?? r.data ?? [];
+      // Show featured first, then latest, max 3
+      const featured = all.filter((t: any) => t.isFeatured);
+      return (featured.length >= 3 ? featured : all).slice(0, 3);
+    }),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  // Fallback services shown while API loads
+  const fallbackServices = [
+    { slug: "calibration", title: "Calibration Services",  shortDescription: "ISO-compliant calibration of laboratory and medical equipment with traceable standards" },
+    { slug: "maintenance", title: "Maintenance & Repair",   shortDescription: "Comprehensive maintenance and repair services for process analytical instruments" },
+    { slug: "training",    title: "Training Programs",      shortDescription: "Technical training for equipment operation and calibration procedures" },
+    { slug: "consulting",  title: "Consulting Services",    shortDescription: "Process optimization and compliance consulting for various industries" },
+  ];
+  const displayServices = (apiServices && apiServices.length > 0) ? apiServices : fallbackServices;
+
+  // Fallback testimonials while API loads
+  const fallbackTestimonials = [
+    { id: 1, customerName: "Dr. Adebayo Johnson",  customerTitle: "Quality Assurance Director", companyName: "PharmaCare Nigeria Ltd",      rating: 5, content: "Darafunmi Precision Technologies has been our trusted calibration partner for over 5 years. Their attention to detail and commitment to ISO standards is exceptional." },
+    { id: 2, customerName: "Engr. Chioma Okafor",  customerTitle: "Plant Manager",              companyName: "Nigerian Bottling Company",    rating: 5, content: "The team's expertise in process control instruments has significantly improved our production efficiency. Highly recommended for any manufacturing facility." },
+    { id: 3, customerName: "Mr. Ibrahim Hassan",   customerTitle: "HSE Manager",                companyName: "Total E&P Nigeria",           rating: 5, content: "Their on-site calibration services have minimized our equipment downtime. Professional, reliable, and always on schedule." },
+  ];
+  const displayTestimonials = (apiTestimonials && apiTestimonials.length > 0) ? apiTestimonials : fallbackTestimonials;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

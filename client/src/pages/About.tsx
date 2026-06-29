@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,32 +32,12 @@ const milestones = [
   { year: "2024", title: "Industry Leadership", description: "Recognized as leading calibration service provider in Nigeria" },
 ];
 
-// Team members
-const teamMembers = [
-  {
-    name: "Funminiyi Daranijo",
-    title: "Founder & CEO",
-    bio: "With over 20 years of experience in process control engineering, Funminiyi founded Darafunmi Precision Technologies with a vision to provide world-class calibration services in Nigeria.",
-    image: null,
-  },
-  {
-    name: "Dr. Adaeze Nwosu",
-    title: "Technical Director",
-    bio: "PhD in Instrumentation Engineering with expertise in laboratory equipment calibration and quality management systems.",
-    image: null,
-  },
-  {
-    name: "Engr. Oluwaseun Adeyemi",
-    title: "Operations Manager",
-    bio: "Certified calibration specialist with 15 years of experience in industrial process control and maintenance.",
-    image: null,
-  },
-  {
-    name: "Mrs. Chidinma Okonkwo",
-    title: "Quality Assurance Manager",
-    bio: "ISO lead auditor with extensive experience in implementing quality management systems across various industries.",
-    image: null,
-  },
+// Fallback team members shown while API loads or if DB is empty
+const fallbackTeam = [
+  { id: 1, name: "Funminiyi Daranijo", title: "Founder & CEO",               bio: "With over 20 years of experience in process control engineering, Funminiyi founded Darafunmi Precision Technologies with a vision to provide world-class calibration services in Nigeria.", imageUrl: null, linkedIn: null, email: null },
+  { id: 2, name: "Dr. Adaeze Nwosu",   title: "Technical Director",          bio: "PhD in Instrumentation Engineering with expertise in laboratory equipment calibration and quality management systems.", imageUrl: null, linkedIn: null, email: null },
+  { id: 3, name: "Engr. Oluwaseun Adeyemi", title: "Operations Manager",     bio: "Certified calibration specialist with 15 years of experience in industrial process control and maintenance.", imageUrl: null, linkedIn: null, email: null },
+  { id: 4, name: "Mrs. Chidinma Okonkwo",   title: "Quality Assurance Manager", bio: "ISO lead auditor with extensive experience in implementing quality management systems across various industries.", imageUrl: null, linkedIn: null, email: null },
 ];
 
 // Certifications
@@ -74,7 +56,31 @@ const values = [
   { icon: Heart, title: "Integrity", description: "We maintain the highest ethical standards in all our dealings" },
 ];
 
+const TeamSkeleton = () => (
+  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+    {[1, 2, 3, 4].map((i) => (
+      <Card key={i} className="text-center animate-pulse">
+        <CardContent className="pt-8">
+          <div className="w-24 h-24 rounded-full bg-muted mx-auto mb-4" />
+          <div className="h-5 w-32 bg-muted rounded mx-auto mb-2" />
+          <div className="h-4 w-24 bg-muted rounded mx-auto mb-4" />
+          <div className="h-3 w-full bg-muted rounded mb-2" />
+          <div className="h-3 w-3/4 bg-muted rounded mx-auto" />
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
 export default function About() {
+  const { data: teamData, isLoading: teamLoading } = useQuery({
+    queryKey: ["team", "public"],
+    queryFn: () => api.get("/team").then((r) => r.data?.data ?? r.data ?? []),
+    staleTime: 1000 * 60 * 10,
+  });
+
+  const teamMembers = (teamData && teamData.length > 0) ? teamData : fallbackTeam;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -219,28 +225,58 @@ export default function About() {
                 in calibration and process control engineering.
               </p>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {teamMembers.map((member, index) => (
-                <Card key={index} className="text-center card-hover">
-                  <CardContent className="pt-8">
-                    <div className="w-24 h-24 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
-                      <Users className="h-12 w-12 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg">{member.name}</h3>
-                    <p className="text-primary text-sm mb-4">{member.title}</p>
-                    <p className="text-muted-foreground text-sm mb-4">{member.bio}</p>
-                    <div className="flex justify-center gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Linkedin className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {teamLoading ? (
+              <TeamSkeleton />
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {teamMembers.map((member: any) => (
+                  <Card key={member.id} className="text-center card-hover">
+                    <CardContent className="pt-8">
+                      {member.imageUrl ? (
+                        <img
+                          src={member.imageUrl}
+                          alt={member.name}
+                          className="w-24 h-24 rounded-full object-cover mx-auto mb-4"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
+                          <Users className="h-12 w-12 text-primary" />
+                        </div>
+                      )}
+                      <h3 className="font-bold text-lg">{member.name}</h3>
+                      <p className="text-primary text-sm mb-3">{member.title}</p>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-4">{member.bio}</p>
+                      <div className="flex justify-center gap-2">
+                        {member.linkedIn && (
+                          <a href={member.linkedIn} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="icon">
+                              <Linkedin className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        )}
+                        {member.email && (
+                          <a href={`mailto:${member.email}`}>
+                            <Button variant="ghost" size="icon">
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        )}
+                        {!member.linkedIn && !member.email && (
+                          <>
+                            <Button variant="ghost" size="icon" disabled>
+                              <Linkedin className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" disabled>
+                              <Mail className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
