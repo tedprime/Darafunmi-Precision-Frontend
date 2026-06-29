@@ -54,7 +54,6 @@ const industries = [
 const resources = [
   { title: "Blog & News",   href: "/blog"         },
   { title: "Case Studies",  href: "/case-studies" },
-  { title: "Downloads",     href: "/resources"    },
 ];
 
 // ─── Cart count hook ──────────────────────────────────────────────

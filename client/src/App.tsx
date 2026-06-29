@@ -20,7 +20,6 @@ import Quote from "./pages/Quote";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CaseStudies from "./pages/CaseStudies";
-import Resources from "./pages/Resources";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import BookService from "./pages/BookService";
@@ -28,6 +27,8 @@ import Dashboard from "./pages/Dashboard";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import QuoteRespond from "./pages/QuoteRespond";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -62,14 +63,15 @@ function Router() {
         <Route path="/quotes/respond/:quoteNumber" component={QuoteRespond} />
         <Route path="/book-service" component={BookService} />
 
-        {/* Resources */}
+        {/* Blog & Content */}
         <Route path="/blog" component={Blog} />
         <Route path="/blog/:slug" component={BlogPost} />
         <Route path="/case-studies" component={CaseStudies} />
-        <Route path="/resources" component={Resources} />
 
         {/* Auth */}
         <Route path="/login" component={Login} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
 
         {/* Customer Portal */}
         <Route path="/dashboard">
