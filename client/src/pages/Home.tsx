@@ -191,24 +191,27 @@ export default function Home() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service, index) => (
-                <Link key={index} href={service.href}>
-                  <Card className="h-full card-hover cursor-pointer group">
-                    <CardHeader>
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        <service.icon className="h-6 w-6 text-primary group-hover:text-primary-foreground" />
-                      </div>
-                      <CardTitle className="text-lg">{service.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-base">{service.description}</CardDescription>
-                      <div className="mt-4 flex items-center text-primary font-medium text-sm group-hover:gap-2 transition-all">
-                        Learn More <ChevronRight className="h-4 w-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+              {displayServices.map((service: any, index: number) => {
+                const Icon = getServiceIcon(service.slug, service.icon);
+                return (
+                  <Link key={service.id ?? index} href={`/services/${service.slug}`}>
+                    <Card className="h-full card-hover cursor-pointer group">
+                      <CardHeader>
+                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                          <Icon className="h-6 w-6 text-primary group-hover:text-primary-foreground" />
+                        </div>
+                        <CardTitle className="text-lg">{service.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <CardDescription className="text-base">{service.shortDescription ?? service.description}</CardDescription>
+                        <div className="mt-4 flex items-center text-primary font-medium text-sm group-hover:gap-2 transition-all">
+                          Learn More <ChevronRight className="h-4 w-4" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
             <div className="text-center mt-12">
               <Link href="/services">
@@ -314,7 +317,7 @@ export default function Home() {
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial) => (
+              {displayTestimonials.map((testimonial: any) => (
                 <Card key={testimonial.id} className="relative">
                   <CardContent className="pt-8">
                     <Quote className="absolute top-6 left-6 h-8 w-8 text-primary/20" />
