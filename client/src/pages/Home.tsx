@@ -195,16 +195,16 @@ export default function Home() {
                 const Icon = getServiceIcon(service.slug, service.icon);
                 return (
                   <Link key={service.id ?? index} href={`/services/${service.slug}`}>
-                    <Card className="h-full card-hover cursor-pointer group">
+                    <Card className="h-full card-hover cursor-pointer group flex flex-col">
                       <CardHeader>
                         <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                           <Icon className="h-6 w-6 text-primary group-hover:text-primary-foreground" />
                         </div>
                         <CardTitle className="text-lg">{service.title}</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <CardDescription className="text-base">{service.shortDescription ?? service.description}</CardDescription>
-                        <div className="mt-4 flex items-center text-primary font-medium text-sm group-hover:gap-2 transition-all">
+                      <CardContent className="flex flex-col flex-1">
+                        <CardDescription className="text-base flex-1">{service.shortDescription ?? service.description}</CardDescription>
+                        <div className="mt-4 flex items-center text-primary font-medium text-sm gap-1">
                           Learn More <ChevronRight className="h-4 w-4" />
                         </div>
                       </CardContent>
@@ -409,13 +409,14 @@ export default function Home() {
             {blogPosts && blogPosts.length > 0 && (
               <div className="grid md:grid-cols-3 gap-8">
                 {blogPosts.map((post: any) => (
-                  <Card key={post.id} className="card-hover overflow-hidden">
-                    <div className="h-48 overflow-hidden">
-                      {post.featuredImage ?? post.imageUrl ? (
+                  <Card key={post.id} className="card-hover overflow-hidden flex flex-col pt-0">
+                    <div className="h-48 overflow-hidden bg-muted flex-shrink-0">
+                      {(post.featuredImage ?? post.imageUrl) ? (
                         <img
                           src={post.featuredImage ?? post.imageUrl}
                           alt={post.title}
                           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
@@ -423,9 +424,11 @@ export default function Home() {
                     </div>
                     <CardHeader>
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="secondary" className="text-xs capitalize">
-                          {post.category}
-                        </Badge>
+                        {post.category && (
+                          <Badge variant="secondary" className="text-xs capitalize">
+                            {post.category}
+                          </Badge>
+                        )}
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString()}
@@ -433,8 +436,8 @@ export default function Home() {
                       </div>
                       <CardTitle className="text-lg line-clamp-2">{post.title}</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
+                    <CardContent className="flex flex-col flex-1">
+                      <CardDescription className="line-clamp-2 flex-1">{post.excerpt}</CardDescription>
                       <div className="flex items-center justify-between mt-4">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <User className="h-3 w-3" />

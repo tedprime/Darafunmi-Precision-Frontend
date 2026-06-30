@@ -38,7 +38,7 @@ interface Product {
   longDescription?: string;
   price: string;
   compareAtPrice?: string;
-  imageUrl?: string;
+  image?: string;       // DB column is `image`, not `imageUrl`
   images?: string[];
   sku?: string;
   status: string;
@@ -94,11 +94,11 @@ export default function ProductDetail() {
     addToCartMutation.mutate({ productId: product.id, quantity });
   };
 
-  // Derive image list — API may return imageUrl (single) or images (array)
+  // Derive image list — API may return images (array) or image (single)
   const imageList = product?.images?.length
     ? product.images
-    : product?.imageUrl
-    ? [product.imageUrl]
+    : product?.image
+    ? [product.image]
     : [];
 
   const inStock = product?.inStock !== false && product?.status !== "inactive";

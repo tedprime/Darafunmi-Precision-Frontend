@@ -100,7 +100,7 @@ export default function CaseStudies() {
             {!isLoading && !isError && caseStudies.length > 0 && (
               <div className="space-y-12">
                 {caseStudies.map((study: any, index: number) => (
-                  <Card key={study.id} className="overflow-hidden">
+                  <Card key={study.id} className="overflow-hidden p-0">
                     <div className="grid md:grid-cols-2">
                       <div className={`aspect-video md:aspect-auto ${index % 2 === 1 ? "md:order-2" : ""}`}>
                         {study.imageUrl ?? study.featuredImage ? (
@@ -113,7 +113,7 @@ export default function CaseStudies() {
                           <div className="w-full h-full min-h-[240px] bg-gradient-to-br from-primary/20 to-secondary/20" />
                         )}
                       </div>
-                      <div className={`p-8 flex flex-col justify-center ${index % 2 === 1 ? "md:order-1" : ""}`}>
+                      <div className={`p-8 flex flex-col justify-center ${index % 2 === 1 ? "md:order-1" : ""}`} >
                         <div className="flex items-center gap-2 mb-4">
                           {study.industry && (
                             <Badge variant="secondary">{study.industry}</Badge>

@@ -230,48 +230,44 @@ export default function About() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {teamMembers.map((member: any) => (
-                  <Card key={member.id} className="text-center card-hover">
-                    <CardContent className="pt-8">
+                  <Card key={member.id} className="text-center card-hover flex flex-col">
+                    <CardContent className="pt-8 flex flex-col flex-1">
                       {member.imageUrl ? (
                         <img
                           src={member.imageUrl}
                           alt={member.name}
                           className="w-24 h-24 rounded-full object-cover mx-auto mb-4"
+                          onError={(e) => {
+                            const el = e.currentTarget as HTMLImageElement;
+                            el.style.display = "none";
+                            el.nextElementSibling?.classList.remove("hidden");
+                          }}
                         />
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
-                          <Users className="h-12 w-12 text-primary" />
-                        </div>
-                      )}
+                      ) : null}
+                      <div className={`w-24 h-24 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4 ${member.imageUrl ? "hidden" : ""}`}>
+                        <Users className="h-12 w-12 text-primary" />
+                      </div>
                       <h3 className="font-bold text-lg">{member.name}</h3>
                       <p className="text-primary text-sm mb-3">{member.title}</p>
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-4">{member.bio}</p>
-                      <div className="flex justify-center gap-2">
-                        {member.linkedIn && (
-                          <a href={member.linkedIn} target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="icon">
-                              <Linkedin className="h-4 w-4" />
-                            </Button>
-                          </a>
-                        )}
-                        {member.email && (
-                          <a href={`mailto:${member.email}`}>
-                            <Button variant="ghost" size="icon">
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                          </a>
-                        )}
-                        {!member.linkedIn && !member.email && (
-                          <>
-                            <Button variant="ghost" size="icon" disabled>
-                              <Linkedin className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" disabled>
-                              <Mail className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-4 flex-1">{member.bio}</p>
+                      {(member.linkedIn || member.email) && (
+                        <div className="flex justify-center gap-2 mt-auto">
+                          {member.linkedIn && (
+                            <a href={member.linkedIn} target="_blank" rel="noopener noreferrer">
+                              <Button variant="ghost" size="icon">
+                                <Linkedin className="h-4 w-4" />
+                              </Button>
+                            </a>
+                          )}
+                          {member.email && (
+                            <a href={`mailto:${member.email}`}>
+                              <Button variant="ghost" size="icon">
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

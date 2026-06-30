@@ -63,8 +63,12 @@ export function useAuth(options?: UseAuthOptions) {
         return null;
       }
     },
-    initialData: undefined,
-    staleTime: 1000 * 60 * 5, // cache for 5 mins
+    // Seed with stored cookie user so the page renders immediately.
+    // initialDataUpdatedAt: 0 marks it stale so a background /me call
+    // fires right away to validate the token — no visible loader.
+    initialData: () => getStoredUser<SiteUser>() ?? null,
+    initialDataUpdatedAt: 0,
+    staleTime: 1000 * 60 * 5, // cache for 5 mins after a fresh /me response
     retry: false,
     refetchOnWindowFocus: false,
   });

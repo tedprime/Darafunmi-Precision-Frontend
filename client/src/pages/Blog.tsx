@@ -114,14 +114,19 @@ export default function Blog() {
             {!isLoading && !isError && posts.length > 0 && (
               <>
                 {/* Featured Post */}
-                <Card className="mb-12 overflow-hidden">
+                <Card className="mb-12 overflow-hidden p-0">
                   <div className="grid md:grid-cols-2">
-                    <div className="aspect-video md:aspect-auto">
-                      <img
-                        src={posts[0].featuredImage ?? posts[0].imageUrl}
-                        alt={posts[0].title}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="aspect-video md:aspect-auto min-h-[240px] bg-muted">
+                      {(posts[0].featuredImage ?? posts[0].imageUrl) ? (
+                        <img
+                          src={posts[0].featuredImage ?? posts[0].imageUrl}
+                          alt={posts[0].title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full min-h-[240px] bg-gradient-to-br from-primary/20 to-secondary/20" />
+                      )}
                     </div>
                     <div className="p-8 flex flex-col justify-center">
                       <Badge className="w-fit mb-4 capitalize">{posts[0].category}</Badge>
@@ -157,20 +162,27 @@ export default function Blog() {
                 {posts.length > 1 && (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {posts.slice(1).map((post: any) => (
-                      <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                        <div className="aspect-video relative overflow-hidden">
-                          <img
-                            src={post.featuredImage ?? post.imageUrl}
-                            alt={post.title}
-                            className="w-full h-full object-cover"
-                          />
-                          <Badge className="absolute top-3 left-3 capitalize">{post.category}</Badge>
+                      <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col pt-0">
+                        <div className="aspect-video relative overflow-hidden bg-muted flex-shrink-0">
+                          {(post.featuredImage ?? post.imageUrl) ? (
+                            <img
+                              src={post.featuredImage ?? post.imageUrl}
+                              alt={post.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20" />
+                          )}
+                          {post.category && (
+                            <Badge className="absolute top-3 left-3 capitalize">{post.category}</Badge>
+                          )}
                         </div>
-                        <CardHeader>
+                        <CardHeader className="flex-1">
                           <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                           <CardDescription className="line-clamp-2">{post.excerpt}</CardDescription>
                         </CardHeader>
-                        <CardFooter className="flex items-center justify-between">
+                        <CardFooter className="flex items-center justify-between mt-auto">
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             {new Date(post.publishedAt ?? post.createdAt).toLocaleDateString()}

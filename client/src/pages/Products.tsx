@@ -28,7 +28,7 @@ interface Product {
   description?: string;
   price: string;
   compareAtPrice?: string;
-  imageUrl?: string;
+  image?: string;       // DB column is `image`, not `imageUrl`
   sku?: string;
   status: string;
   isFeatured?: boolean;
@@ -42,7 +42,7 @@ const Skeleton = ({ className = "" }: { className?: string }) => (
 );
 
 const ProductCardSkeleton = () => (
-  <Card className="overflow-hidden">
+  <Card className="overflow-hidden pt-0">
     <Skeleton className="aspect-square w-full rounded-none" />
     <CardHeader className="pb-2">
       <Skeleton className="h-3 w-24 mb-2" />
@@ -236,13 +236,14 @@ export default function Products() {
             {!isLoading && !error && sorted.length > 0 && viewMode === "grid" && (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {sorted.map((product) => (
-                  <Card key={product.id} className="card-hover group overflow-hidden">
-                    <div className="relative aspect-square bg-muted">
-                      {product.imageUrl ? (
+                  <Card key={product.id} className="card-hover group overflow-hidden flex flex-col pt-0">
+                    <div className="relative aspect-square bg-muted flex-shrink-0">
+                      {product.image ? (
                         <img
-                          src={product.imageUrl}
+                          src={product.image}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -258,9 +259,9 @@ export default function Products() {
                     </div>
                     <CardHeader className="pb-2">
                       <p className="text-xs text-muted-foreground">{product.category?.name ?? "—"}</p>
-                      <CardTitle className="text-lg line-clamp-1">{product.name}</CardTitle>
+                      <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
                     </CardHeader>
-                    <CardContent className="pb-2">
+                    <CardContent className="pb-2 flex-1">
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                         {product.description ?? ""}
                       </p>
@@ -275,7 +276,7 @@ export default function Products() {
                         )}
                       </div>
                     </CardContent>
-                    <CardFooter className="gap-2">
+                    <CardFooter className="gap-2 mt-auto">
                       <Link href={`/products/${product.id}`} className="flex-1">
                         <Button variant="outline" className="w-full">View Details</Button>
                       </Link>
@@ -296,14 +297,15 @@ export default function Products() {
             {!isLoading && !error && sorted.length > 0 && viewMode === "list" && (
               <div className="space-y-4">
                 {sorted.map((product) => (
-                  <Card key={product.id} className="card-hover">
+                  <Card key={product.id} className="card-hover p-0 overflow-hidden">
                     <div className="flex flex-col md:flex-row">
-                      <div className="md:w-48 h-48 bg-muted flex-shrink-0">
-                        {product.imageUrl ? (
+                      <div className="md:w-48 h-48 bg-muted flex-shrink-0 overflow-hidden">
+                        {product.image ? (
                           <img
-                            src={product.imageUrl}
+                            src={product.image}
                             alt={product.name}
                             className="w-full h-full object-cover"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
