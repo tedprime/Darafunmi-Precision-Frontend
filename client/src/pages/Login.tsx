@@ -94,6 +94,7 @@ export default function Login() {
 
       {/* Logo / Brand */}
       <div className="text-center mb-8">
+        <img src="/dpt-logo.png" alt="Darafunmi Precision Technologies" className="h-16 mx-auto mb-4" />
         <h1 className="text-2xl font-bold tracking-tight">Darafunmi Precision Technologies</h1>
         <p className="text-muted-foreground mt-1 text-sm">Sign in or create an account to continue</p>
       </div>

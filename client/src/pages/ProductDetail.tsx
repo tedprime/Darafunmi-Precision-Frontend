@@ -66,7 +66,16 @@ export default function ProductDetail() {
     queryFn: async () => {
       const res = await api.get(`/products/${idParam}`);
       const body = res.data;
-      return (body?.data ?? body) as Product;
+      const p = (body?.data ?? body) as Product;
+      const parseJsonField = (v: unknown) => {
+        if (Array.isArray(v)) return v;
+        if (typeof v === "string") { try { return JSON.parse(v); } catch { return []; } }
+        return [];
+      };
+      p.features = parseJsonField(p.features);
+      p.specifications = parseJsonField(p.specifications);
+      p.images = parseJsonField(p.images);
+      return p;
     },
     enabled: !!idParam,
   });

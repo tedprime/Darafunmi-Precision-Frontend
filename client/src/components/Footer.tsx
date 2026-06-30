@@ -127,11 +127,7 @@ export default function Footer() {
           {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary">
-                <span className="text-primary-foreground font-bold text-2xl">
-                  D
-                </span>
-              </div>
+              <img src="/dpt-logo-white.jpeg" alt="Darafunmi Precision Technologies" className="h-12 w-auto" />
               <div>
                 <span className="font-bold text-xl text-background">
                   Darafunmi

@@ -101,9 +101,7 @@ export default function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg gradient-primary">
-              <span className="text-white font-bold text-xl">D</span>
-            </div>
+            <img src="/dpt-logo.png" alt="Darafunmi Precision Technologies" className="h-10 w-auto" />
             <div className="hidden sm:block">
               <span className="font-bold text-lg text-foreground">Darafunmi</span>
               <span className="block text-xs text-muted-foreground -mt-1">Precision Technologies</span>
