@@ -60,6 +60,7 @@ export default function Quote() {
     customerEmail: "",
     customerPhone: "",
     companyName: "",
+    customerAddress: "",
     urgency: "",
     budget: "",
     description: "",
@@ -121,8 +122,9 @@ export default function Quote() {
       customerName:  formData.customerName,
       customerEmail: formData.customerEmail,
       customerPhone: formData.customerPhone || undefined,
-      companyName:   formData.companyName   || undefined,
-      industry:      formData.industry      || undefined,
+      companyName:      formData.companyName      || undefined,
+      customerAddress:  formData.customerAddress  || undefined,
+      industry:         formData.industry         || undefined,
       budget:        formData.budget        || undefined,
       urgency:       formData.urgency       || undefined,
       description:   formData.description   || undefined,
@@ -429,6 +431,15 @@ export default function Quote() {
                               onChange={(e) => handleChange("companyName", e.target.value)}
                             />
                           </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="customerAddress">Address</Label>
+                          <Input
+                            id="customerAddress"
+                            placeholder="Street, City, State"
+                            value={formData.customerAddress}
+                            onChange={(e) => handleChange("customerAddress", e.target.value)}
+                          />
                         </div>
                       </div>
 
