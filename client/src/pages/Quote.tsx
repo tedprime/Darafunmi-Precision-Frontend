@@ -20,6 +20,8 @@ import {
   Shield,
   Phone,
   Mail,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 const serviceTypes = [
@@ -43,11 +45,14 @@ const industries = [
   "Other",
 ];
 
+interface EquipmentRow { equipmentName: string; quantity: string; note: string; }
+const emptyRow = (): EquipmentRow => ({ equipmentName: "", quantity: "1", note: "" });
+
 export default function Quote() {
   const [, navigate] = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [quoteNumber, setQuoteNumber] = useState("");
-  
+
   const [formData, setFormData] = useState({
     serviceType: "",
     industry: "",
@@ -55,13 +60,14 @@ export default function Quote() {
     customerEmail: "",
     customerPhone: "",
     companyName: "",
-    equipmentType: "",
-    quantity: "",
     urgency: "",
     budget: "",
     description: "",
     acceptTerms: false,
   });
+
+  // Multiple equipment / instrument rows
+  const [equipmentRows, setEquipmentRows] = useState<EquipmentRow[]>([emptyRow()]);
 
   const createQuoteMutation = useMutation({
     mutationFn: (data: unknown) =>
@@ -80,26 +86,47 @@ export default function Quote() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const setRow = (idx: number, field: keyof EquipmentRow, value: string) =>
+    setEquipmentRows((prev) =>
+      prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r))
+    );
+  const addRow = () => setEquipmentRows((prev) => [...prev, emptyRow()]);
+  const removeRow = (idx: number) =>
+    setEquipmentRows((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== idx) : prev));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.acceptTerms) {
       toast.error("Please accept the terms and conditions");
       return;
     }
 
+    // Build requestItems from the equipment rows (skip blank rows)
+    const requestItems = equipmentRows
+      .filter((r) => r.equipmentName.trim())
+      .map((r) => ({
+        equipmentName: r.equipmentName.trim(),
+        quantity: r.quantity ? parseInt(r.quantity) : 1,
+        note: r.note.trim() || undefined,
+      }));
+
+    if (requestItems.length === 0) {
+      toast.error("Please add at least one equipment or instrument item.");
+      return;
+    }
+
     createQuoteMutation.mutate({
-      serviceType: formData.serviceType || undefined,
-      customerName: formData.customerName,
+      serviceType:   formData.serviceType   || undefined,
+      customerName:  formData.customerName,
       customerEmail: formData.customerEmail,
       customerPhone: formData.customerPhone || undefined,
-      companyName: formData.companyName || undefined,
-      industry: formData.industry || undefined,
-      equipmentType: formData.equipmentType || undefined,
-      quantity: formData.quantity ? parseInt(formData.quantity) : undefined,
-      budget: formData.budget || undefined,
-      urgency: formData.urgency || undefined,
-      description: formData.description || undefined,
+      companyName:   formData.companyName   || undefined,
+      industry:      formData.industry      || undefined,
+      budget:        formData.budget        || undefined,
+      urgency:       formData.urgency       || undefined,
+      description:   formData.description   || undefined,
+      requestItems,
     });
   };
 
@@ -215,27 +242,111 @@ export default function Quote() {
                             </Select>
                           </div>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="equipmentType">Equipment Type</Label>
-                            <Input
-                              id="equipmentType"
-                              placeholder="e.g., Pressure Gauges, Temperature Sensors"
-                              value={formData.equipmentType}
-                              onChange={(e) => handleChange("equipmentType", e.target.value)}
-                            />
+                        {/* Equipment / instrument rows */}
+                        <div className="space-y-2">
+                          <Label>
+                            Equipment / Instruments{" "}
+                            <span className="text-muted-foreground font-normal text-xs">
+                              — add one row per item
+                            </span>
+                          </Label>
+
+                          {/* Column headers */}
+                          <div className="hidden md:grid grid-cols-[1fr_80px_1fr_32px] gap-2 px-0.5">
+                            <span className="text-xs font-medium text-muted-foreground">Equipment / Instrument</span>
+                            <span className="text-xs font-medium text-muted-foreground text-center">Qty</span>
+                            <span className="text-xs font-medium text-muted-foreground">Note (optional)</span>
+                            <span />
                           </div>
+
                           <div className="space-y-2">
-                            <Label htmlFor="quantity">Quantity</Label>
-                            <Input
-                              id="quantity"
-                              type="number"
-                              placeholder="Number of items"
-                              value={formData.quantity}
-                              onChange={(e) => handleChange("quantity", e.target.value)}
-                            />
+                            {equipmentRows.map((row, idx) => (
+                              <div key={idx} className="hidden md:grid grid-cols-[1fr_80px_1fr_32px] gap-2 items-center">
+                                <Input
+                                  placeholder="e.g. Pressure Gauge"
+                                  value={row.equipmentName}
+                                  onChange={(e) => setRow(idx, "equipmentName", e.target.value)}
+                                />
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  placeholder="1"
+                                  value={row.quantity}
+                                  onChange={(e) => setRow(idx, "quantity", e.target.value)}
+                                  className="text-center"
+                                />
+                                <Input
+                                  placeholder="e.g. NIST traceable cert required"
+                                  value={row.note}
+                                  onChange={(e) => setRow(idx, "note", e.target.value)}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeRow(idx)}
+                                  disabled={equipmentRows.length === 1}
+                                  className="p-1.5 rounded text-muted-foreground hover:text-destructive disabled:opacity-30 transition-colors"
+                                  aria-label="Remove row"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            ))}
+
+                            {/* Mobile: card per row */}
+                            {equipmentRows.map((row, idx) => (
+                              <div key={`m-${idx}`} className="md:hidden border rounded-lg p-3 space-y-2 bg-muted/30">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                    Item {idx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeRow(idx)}
+                                    disabled={equipmentRows.length === 1}
+                                    className="p-1 rounded text-muted-foreground hover:text-destructive disabled:opacity-30"
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
+                                </div>
+                                <Input
+                                  placeholder="Equipment / Instrument name"
+                                  value={row.equipmentName}
+                                  onChange={(e) => setRow(idx, "equipmentName", e.target.value)}
+                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <Label className="text-xs mb-1 block">Quantity</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      placeholder="1"
+                                      value={row.quantity}
+                                      onChange={(e) => setRow(idx, "quantity", e.target.value)}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs mb-1 block">Note</Label>
+                                    <Input
+                                      placeholder="Optional note"
+                                      value={row.note}
+                                      onChange={(e) => setRow(idx, "note", e.target.value)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
+
+                          <button
+                            type="button"
+                            onClick={addRow}
+                            className="flex items-center gap-1.5 text-sm text-primary hover:underline mt-1"
+                          >
+                            <Plus size={14} />
+                            Add another item
+                          </button>
                         </div>
+
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="urgency">Urgency</Label>
