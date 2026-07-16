@@ -534,13 +534,13 @@ export default function Quote() {
                       Our team is ready to assist you with any questions.
                     </p>
                     <div className="space-y-3">
-                      <a href="tel:+2348034680544" className="flex items-center gap-2 text-sm hover:text-primary">
+                      <a href="tel:+2348061535441" className="flex items-center gap-2 text-sm hover:text-primary">
                         <Phone className="h-4 w-4" />
-                        +234 803 468 0544
+                        +234 806 153 5441
                       </a>
-                      <a href="mailto:info@darafunmiprecision.com" className="flex items-center gap-2 text-sm hover:text-primary">
+                      <a href="mailto:support@darafunmi.com" className="flex items-center gap-2 text-sm hover:text-primary">
                         <Mail className="h-4 w-4" />
-                        info@darafunmiprecision.com
+                        support@darafunmi.com
                       </a>
                     </div>
                   </CardContent>

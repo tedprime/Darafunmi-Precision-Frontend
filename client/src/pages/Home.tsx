@@ -19,7 +19,7 @@ import {
   Microscope,
   Factory,
   Droplets,
-  Ship,
+  Zap,
   Package,
   Pill,
   Star,
@@ -30,6 +30,7 @@ import {
   User,
   Cog,
   FlaskConical,
+  UtensilsCrossed,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -48,14 +49,14 @@ const getServiceIcon = (slug = "", icon = ""): React.ElementType => {
   return key ? serviceIconMap[key] : serviceIconMap.default;
 };
 
-// Static industry list — icons can't come from the DB
+// Static industry list — aligned with company profile
 const industries = [
-  { icon: Pill,     name: "Pharmaceutical", href: "/industries/pharmaceutical", color: "bg-blue-500"   },
-  { icon: Factory,  name: "Manufacturing",  href: "/industries/manufacturing",  color: "bg-gray-500"   },
-  { icon: Droplets, name: "Oil and Gas",    href: "/industries/oil-and-gas",    color: "bg-amber-500"  },
-  { icon: Ship,     name: "Marine",         href: "/industries/marine",         color: "bg-cyan-500"   },
-  { icon: Package,  name: "Beverages",      href: "/industries/beverages",      color: "bg-green-500"  },
-  { icon: Package,  name: "Packaging",      href: "/industries/packaging",      color: "bg-purple-500" },
+  { icon: Factory,         name: "Manufacturing",       href: "/industries/manufacturing",   color: "bg-gray-500"   },
+  { icon: Droplets,        name: "Oil & Gas",           href: "/industries/oil-and-gas",     color: "bg-amber-500"  },
+  { icon: Pill,            name: "Pharmaceutical",      href: "/industries/pharmaceutical",  color: "bg-blue-500"   },
+  { icon: UtensilsCrossed, name: "Food & Beverage",     href: "/industries/food-beverage",   color: "bg-green-500"  },
+  { icon: Zap,             name: "Power & Energy",      href: "/industries/power-energy",    color: "bg-yellow-500" },
+  { icon: Package,         name: "Chemical Processing", href: "/industries/chemical",        color: "bg-purple-500" },
 ];
 
 // Stats
@@ -91,10 +92,10 @@ export default function Home() {
 
   // Fallback services shown while API loads
   const fallbackServices = [
-    { slug: "calibration", title: "Calibration Services",  shortDescription: "ISO-compliant calibration of laboratory and medical equipment with traceable standards" },
-    { slug: "maintenance", title: "Maintenance & Repair",   shortDescription: "Comprehensive maintenance and repair services for process analytical instruments" },
-    { slug: "training",    title: "Training Programs",      shortDescription: "Technical training for equipment operation and calibration procedures" },
-    { slug: "consulting",  title: "Consulting Services",    shortDescription: "Process optimization and compliance consulting for various industries" },
+    { slug: "calibration",      title: "Calibration Services",       shortDescription: "ISO-compliant calibration of laboratory and industrial equipment with traceable standards" },
+    { slug: "maintenance",      title: "Maintenance & Repair",       shortDescription: "Comprehensive maintenance and repair services for process analytical instruments" },
+    { slug: "quality-assurance", title: "Quality Assurance",         shortDescription: "ISO 9001:2015 implementation, internal audits, and quality compliance management" },
+    { slug: "consulting",       title: "Technical Consultancy",      shortDescription: "Process optimization, operational excellence, and engineering project management" },
   ];
   const displayServices = (apiServices && apiServices.length > 0) ? apiServices : fallbackServices;
 
@@ -125,8 +126,8 @@ export default function Home() {
                   <span className="text-primary">Measurement</span>
                 </h1>
                 <p className="text-xl text-muted-foreground max-w-lg">
-                  Process Control Engineers & Calibration Contractors delivering 
-                  <strong className="text-foreground"> accuracy, effectiveness, and competency</strong> across 
+                  Process Control Engineers & Calibration Contractors delivering
+                  <strong className="text-foreground"> precision, quality, and innovation</strong> across
                   Nigeria's leading industries.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -365,7 +366,7 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <a href="tel:+2348034680544">
+              <a href="tel:+2348061535441">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">
                   <Phone className="mr-2 h-5 w-5" />
                   Call Us Now

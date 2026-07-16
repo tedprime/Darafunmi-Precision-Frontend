@@ -17,6 +17,7 @@ import {
   MapPin,
   CheckCircle2,
   Building2,
+  Shield,
   Linkedin,
   Mail,
 } from "lucide-react";
@@ -48,12 +49,15 @@ const certifications = [
   { name: "NSE", description: "Nigerian Society of Engineers membership", issuer: "NSE" },
 ];
 
-// Core values
+// Core values — aligned with official Company Profile
 const values = [
-  { icon: Target, title: "Accuracy", description: "We deliver precise measurements that you can trust" },
-  { icon: Award, title: "Effectiveness", description: "Our solutions are designed to maximize your operational efficiency" },
-  { icon: Users, title: "Competency", description: "Our team comprises certified professionals with extensive experience" },
-  { icon: Heart, title: "Integrity", description: "We maintain the highest ethical standards in all our dealings" },
+  { icon: Target,    title: "Precision",           description: "We deliver accurate, traceable, and dependable technical solutions." },
+  { icon: Award,     title: "Reliability",          description: "We consistently provide quality services that our customers can trust." },
+  { icon: Heart,     title: "Integrity",            description: "We conduct business ethically, transparently, and professionally." },
+  { icon: Users,     title: "Customer Focus",       description: "We understand and exceed customer expectations through responsive, value-driven services." },
+  { icon: CheckCircle2, title: "Innovation",        description: "We embrace technology and continuous improvement to enhance service delivery." },
+  { icon: Building2, title: "Teamwork",             description: "We foster collaboration, knowledge sharing, and mutual respect." },
+  { icon: Shield,    title: "Safety & Compliance",  description: "We uphold the highest standards of safety, quality, and regulatory compliance in all operations." },
 ];
 
 const TeamSkeleton = () => (
@@ -95,9 +99,9 @@ export default function About() {
                 Precision Engineering Since <span className="text-primary">2006</span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Darafunmi Precision Technologies Ltd is a leading process control engineering 
-                and calibration services company, committed to delivering accuracy, effectiveness, 
-                and competency across Nigeria's key industries.
+                Darafunmi Precision Technologies Ltd. is a Nigerian engineering and technology company
+                dedicated to delivering high-quality calibration, maintenance, procurement support,
+                technical consultancy, and quality assurance services across diverse industries.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/contact">
@@ -126,9 +130,10 @@ export default function About() {
                   <Target className="h-12 w-12 text-primary mb-4" />
                   <h3 className="text-xl font-bold mb-3">Our Mission</h3>
                   <p className="text-muted-foreground">
-                    To provide world-class calibration and process control services that ensure 
-                    our clients achieve optimal equipment performance, regulatory compliance, 
-                    and operational excellence.
+                    To provide accurate, reliable, and cost-effective calibration, maintenance,
+                    repair, laboratory equipment supply, and after-sales support services through
+                    competent professionals, advanced technology, and a customer-focused approach,
+                    while ensuring compliance with international standards and continual improvement.
                   </p>
                 </CardContent>
               </Card>
@@ -139,9 +144,9 @@ export default function About() {
                   <Eye className="h-12 w-12 text-secondary mb-4" />
                   <h3 className="text-xl font-bold mb-3">Our Vision</h3>
                   <p className="text-muted-foreground">
-                    To be the most trusted and preferred calibration and process control 
-                    partner across Africa, setting the standard for precision, reliability, 
-                    and customer satisfaction.
+                    To be Africa's leading and most trusted provider of precision calibration,
+                    maintenance, laboratory solutions, and industrial technical services,
+                    recognized for excellence, innovation, reliability, and customer satisfaction.
                   </p>
                 </CardContent>
               </Card>
@@ -165,7 +170,7 @@ export default function About() {
               <Badge variant="outline" className="mb-4">Our Values</Badge>
               <h2 className="section-title">What Drives Us</h2>
             </div>
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {values.map((value, index) => (
                 <div key={index} className="text-center p-6">
                   <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
@@ -304,6 +309,73 @@ export default function About() {
           </div>
         </section>
 
+        {/* Quality Policy */}
+        <section id="quality-policy" className="section bg-muted/30">
+          <div className="container">
+            <div className="text-center mb-12">
+              <Badge variant="outline" className="mb-4">Quality Policy</Badge>
+              <h2 className="section-title">Our Commitment to Quality</h2>
+              <p className="section-subtitle mx-auto">
+                Our Quality Management System is built on ISO 9001:2015 principles,
+                ensuring every service we deliver meets the highest standards.
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-8">
+              {/* Main statement */}
+              <Card className="border-l-4 border-l-primary">
+                <CardContent className="p-8">
+                  <div className="flex gap-4">
+                    <Shield className="h-8 w-8 text-primary flex-shrink-0 mt-1" />
+                    <p className="text-foreground text-lg leading-relaxed">
+                      Darafunmi Precision Technologies Ltd. is committed to providing
+                      accurate, reliable, and cost-effective calibration, maintenance,
+                      repair, laboratory equipment supply, installation, commissioning,
+                      and after-sales support services that consistently meet customer,
+                      statutory, and regulatory requirements.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Commitments */}
+              <div>
+                <h3 className="text-lg font-semibold mb-6 text-center">
+                  We are dedicated to achieving excellence through:
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {[
+                    "Employing competent, skilled, and continually trained personnel.",
+                    "Utilizing appropriate technologies, calibrated standards, and industry best practices.",
+                    "Delivering services that meet agreed quality, safety, and turnaround time requirements.",
+                    "Understanding and exceeding customer expectations through effective communication and responsive support.",
+                    "Maintaining mutually beneficial relationships with customers, suppliers, and other interested parties.",
+                    "Identifying and managing risks and opportunities that may impact service quality and customer satisfaction.",
+                    "Continually improving the effectiveness of our Quality Management System in accordance with ISO 9001:2015.",
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-background rounded-lg p-4">
+                      <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-muted-foreground">{item}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Closing tagline */}
+              <div className="text-center bg-primary text-primary-foreground rounded-xl py-8 px-6">
+                <Award className="h-10 w-10 mx-auto mb-4 text-secondary" />
+                <p className="text-xl font-bold italic">
+                  "Quality is our commitment; Customer Satisfaction is our success."
+                </p>
+                <p className="text-primary-foreground/70 text-sm mt-3">
+                  Management and employees at all levels are committed to implementing
+                  this Quality Policy and ensuring quality remains everyone's responsibility.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Location */}
         <section className="section">
           <div className="container">
@@ -312,23 +384,23 @@ export default function About() {
                 <Badge variant="outline" className="mb-4">Our Location</Badge>
                 <h2 className="section-title">Visit Our Facility</h2>
                 <p className="text-muted-foreground mb-6">
-                  Our state-of-the-art calibration laboratory is located in Redemption Camp, 
-                  Ogun State, Nigeria. We welcome visits from clients and partners.
+                  Our calibration laboratory and technical offices are located along the
+                  Lagos–Ibadan Expressway at Redemption Camp, Mowe, Ogun State. We welcome
+                  visits from clients and partners.
                 </p>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">Address</p>
-                      <p className="text-muted-foreground">Redemption Camp, Ogun State, Nigeria</p>
+                      <p className="text-muted-foreground">Behind Tantalizers – RUN, KM 46, Lagos–Ibadan Expressway, adjacent to RCCG Redemption City, Mowe, Ogun State, Nigeria</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Calendar className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <p className="font-medium">Business Hours</p>
-                      <p className="text-muted-foreground">Monday - Friday: 8:00 AM - 5:00 PM</p>
-                      <p className="text-muted-foreground">Saturday: 9:00 AM - 1:00 PM</p>
+                      <p className="text-muted-foreground">Monday – Friday: 8:00 AM – 5:00 PM</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

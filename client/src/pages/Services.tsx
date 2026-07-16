@@ -15,6 +15,9 @@ import {
   Shield,
   Award,
   Phone,
+  Cog,
+  Package,
+  ClipboardCheck,
 } from "lucide-react";
 
 const services = [
@@ -69,18 +72,66 @@ const services = [
   {
     slug: "consulting",
     icon: Target,
-    title: "Consulting Services",
+    title: "Technical Consultancy",
     shortDescription: "Process optimization and compliance consulting",
     description: "Our expert consultants help you optimize your processes, achieve regulatory compliance, and implement best practices in calibration and quality management.",
     features: [
+      "Manufacturing improvement",
       "Process optimization",
-      "Regulatory compliance consulting",
-      "Quality system implementation",
-      "Audit preparation",
-      "Gap analysis",
-      "Continuous improvement programs",
+      "Productivity enhancement",
+      "Operational excellence",
+      "Engineering project management",
+      "Technical training",
     ],
-    industries: ["Pharmaceutical", "Manufacturing", "Healthcare"],
+    industries: ["Pharmaceutical", "Manufacturing", "Healthcare", "Oil & Gas"],
+  },
+  {
+    slug: "engineering",
+    icon: Cog,
+    title: "Engineering Services",
+    shortDescription: "Mechanical engineering solutions, equipment installation and plant maintenance",
+    description: "We provide end-to-end engineering support — from equipment installation and commissioning to preventive maintenance programs and technical troubleshooting — keeping your plant running at optimal performance.",
+    features: [
+      "Mechanical engineering solutions",
+      "Industrial equipment installation",
+      "Plant maintenance",
+      "Preventive & predictive maintenance",
+      "Equipment troubleshooting",
+      "Technical support services",
+    ],
+    industries: ["Manufacturing", "Oil & Gas", "Power & Energy", "Chemical Processing"],
+  },
+  {
+    slug: "procurement",
+    icon: Package,
+    title: "Procurement & Supply Chain",
+    shortDescription: "Industrial procurement, vendor development and supply chain management",
+    description: "We support your procurement needs through strategic sourcing, vendor development, and supply chain management — ensuring you get the right equipment at the right time and price.",
+    features: [
+      "Industrial procurement",
+      "Vendor development",
+      "Strategic sourcing",
+      "Supply chain management",
+      "Inventory management",
+      "Procurement consultancy",
+    ],
+    industries: ["Manufacturing", "Oil & Gas", "FMCG", "Government Agencies"],
+  },
+  {
+    slug: "quality-assurance",
+    icon: ClipboardCheck,
+    title: "Quality Assurance & Compliance",
+    shortDescription: "ISO management system implementation, audits and quality inspection",
+    description: "We help organizations implement and maintain robust quality management systems, conduct internal audits, evaluate suppliers, and manage risk — ensuring compliance with ISO 9001:2015 and other applicable standards.",
+    features: [
+      "ISO management system implementation",
+      "Internal quality audits",
+      "Supplier evaluation",
+      "Quality inspection",
+      "Process improvement",
+      "Risk management",
+    ],
+    industries: ["Pharmaceutical", "Manufacturing", "Oil & Gas", "Government Agencies"],
   },
 ];
 
@@ -291,7 +342,7 @@ export default function Services() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <a href="tel:+2348034680544">
+              <a href="tel:+2348061535441">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">
                   <Phone className="mr-2 h-5 w-5" />
                   Call Us Now

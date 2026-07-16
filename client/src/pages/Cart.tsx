@@ -87,21 +87,7 @@ export default function Cart() {
       minimumFractionDigits: 0,
     }).format(typeof price === "string" ? parseFloat(price) : price);
 
-  // Demo items shown to unauthenticated visitors
-  const demoCartItems: CartItem[] = [
-    {
-      id: 1, productId: 1, quantity: 2,
-      product: { name: "Digital Pressure Gauge", price: "85000.00", sku: "DPG-100",
-        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop" },
-    },
-    {
-      id: 2, productId: 2, quantity: 1,
-      product: { name: "RTD Temperature Sensor", price: "45000.00", sku: "RTD-PT100",
-        imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=100&h=100&fit=crop" },
-    },
-  ];
-
-  const displayItems = isAuthenticated ? cartItems : demoCartItems;
+  const displayItems = isAuthenticated ? cartItems : [];
   const subtotal = displayItems.reduce(
     (sum, item) => sum + parseFloat(item.product?.price || "0") * item.quantity, 0
   );
@@ -133,7 +119,30 @@ export default function Cart() {
               <h1 className="text-3xl font-bold">Shopping Cart</h1>
             </div>
 
-            {displayItems.length === 0 ? (
+            {!isAuthenticated ? (
+              /* ── Not signed in ───────────────────────────────── */
+              <Card className="text-center py-16">
+                <CardContent>
+                  <ShoppingCart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Sign in to view your cart</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Create an account or sign in to add products to your cart and place orders.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/login">
+                      <Button>Sign In</Button>
+                    </Link>
+                    <Link href="/products">
+                      <Button variant="outline">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Browse Products
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : displayItems.length === 0 ? (
+              /* ── Authenticated but empty ─────────────────────── */
               <Card className="text-center py-16">
                 <CardContent>
                   <Package className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -153,68 +162,56 @@ export default function Cart() {
               <div className="grid lg:grid-cols-3 gap-8">
                 {/* ── Cart Items ─────────────────────────────────── */}
                 <div className="lg:col-span-2 space-y-4">
-                  {!isAuthenticated && (
-                    <Card className="bg-yellow-50 border-yellow-200">
-                      <CardContent className="p-4">
-                        <p className="text-yellow-800 text-sm">
-                          <strong>Demo Mode:</strong> Sign in to save your cart and complete checkout.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-
                   {displayItems.map((item) => (
                     <Card key={item.id}>
-                      <CardContent className="p-6">
-                        <div className="flex gap-6">
-                          <div className="w-24 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex gap-4 sm:gap-6">
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                             <img
                               src={item.product?.imageUrl}
                               alt={item.product?.name}
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between">
-                              <div>
-                                <h3 className="font-semibold">{item.product?.name}</h3>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between gap-2">
+                              <div className="min-w-0">
+                                <h3 className="font-semibold truncate">{item.product?.name}</h3>
                                 <p className="text-sm text-muted-foreground">SKU: {item.product?.sku}</p>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="text-muted-foreground hover:text-destructive"
-                                onClick={() => isAuthenticated && removeItemMutation.mutate(item.id)}
-                                disabled={!isAuthenticated || removeItemMutation.isPending}
+                                className="text-muted-foreground hover:text-destructive flex-shrink-0"
+                                onClick={() => removeItemMutation.mutate(item.id)}
+                                disabled={removeItemMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
 
-                            <div className="flex items-center justify-between mt-4">
+                            <div className="flex flex-wrap items-center justify-between mt-3 gap-3">
                               <div className="flex items-center border rounded-md">
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
                                   onClick={() =>
-                                    isAuthenticated &&
                                     updateQuantityMutation.mutate({ id: item.id, quantity: Math.max(1, item.quantity - 1) })
                                   }
-                                  disabled={item.quantity <= 1 || !isAuthenticated || updateQuantityMutation.isPending}
+                                  disabled={item.quantity <= 1 || updateQuantityMutation.isPending}
                                 >
                                   <Minus className="h-3 w-3" />
                                 </Button>
-                                <span className="w-12 text-center">{item.quantity}</span>
+                                <span className="w-10 text-center text-sm">{item.quantity}</span>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
                                   onClick={() =>
-                                    isAuthenticated &&
                                     updateQuantityMutation.mutate({ id: item.id, quantity: item.quantity + 1 })
                                   }
-                                  disabled={!isAuthenticated || updateQuantityMutation.isPending}
+                                  disabled={updateQuantityMutation.isPending}
                                 >
                                   <Plus className="h-3 w-3" />
                                 </Button>
@@ -224,7 +221,7 @@ export default function Cart() {
                                 <p className="font-semibold text-primary">
                                   {formatPrice(parseFloat(item.product?.price || "0") * item.quantity)}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-xs text-muted-foreground">
                                   {formatPrice(item.product?.price || "0")} each
                                 </p>
                               </div>

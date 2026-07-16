@@ -378,7 +378,7 @@ export default function BookService() {
                   For urgent service requests or questions, contact us directly.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a href="tel:+2348034680544">
+                  <a href="tel:+2348061535441">
                     <Button size="lg" variant="secondary">
                       <Phone className="mr-2 h-5 w-5" />Call Now
                     </Button>

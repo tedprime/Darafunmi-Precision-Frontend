@@ -36,19 +36,26 @@ import {
 import { cn } from "@/lib/utils";
 
 const services = [
-  { title: "Calibration Services",  href: "/services/calibration", description: "ISO-compliant calibration for laboratory and medical equipment" },
-  { title: "Maintenance & Repair",  href: "/services/maintenance",  description: "Routine maintenance and repair services" },
-  { title: "Training Programs",     href: "/services/training",     description: "Technical training for equipment operation" },
-  { title: "Consulting Services",   href: "/services/consulting",   description: "Process optimization and compliance consulting" },
+  { title: "Calibration Services",        href: "/services/calibration",       description: "ISO-compliant calibration for laboratory and industrial equipment" },
+  { title: "Maintenance & Repair",        href: "/services/maintenance",       description: "Preventive & predictive maintenance, equipment overhaul" },
+  { title: "Engineering Services",        href: "/services/engineering",       description: "Equipment installation, plant maintenance, and troubleshooting" },
+  { title: "Procurement & Supply Chain",  href: "/services/procurement",       description: "Industrial procurement, vendor development, and strategic sourcing" },
+  { title: "Quality Assurance",           href: "/services/quality-assurance", description: "ISO implementation, internal audits, and compliance management" },
+  { title: "Technical Consultancy",       href: "/services/consulting",        description: "Process optimization, operational excellence, and project management" },
+  { title: "Training Programs",           href: "/services/training",          description: "Technical training for equipment operation and calibration" },
 ];
 
 const industries = [
-  { title: "Pharmaceutical", href: "/industries/pharmaceutical" },
-  { title: "Manufacturing",  href: "/industries/manufacturing"  },
-  { title: "Oil and Gas",    href: "/industries/oil-and-gas"    },
-  { title: "Marine",         href: "/industries/marine"         },
-  { title: "Beverages",      href: "/industries/beverages"      },
-  { title: "Packaging",      href: "/industries/packaging"      },
+  { title: "Manufacturing",            href: "/industries/manufacturing"         },
+  { title: "Oil & Gas",               href: "/industries/oil-and-gas"           },
+  { title: "Pharmaceutical",          href: "/industries/pharmaceutical"        },
+  { title: "Food & Beverage",         href: "/industries/food-beverage"         },
+  { title: "Power & Energy",          href: "/industries/power-energy"          },
+  { title: "Chemical Processing",     href: "/industries/chemical"              },
+  { title: "Engineering & Construction", href: "/industries/engineering-construction" },
+  { title: "FMCG",                    href: "/industries/fmcg"                  },
+  { title: "Logistics & Warehousing", href: "/industries/logistics-warehousing" },
+  { title: "Government Agencies",     href: "/industries/government-agencies"   },
 ];
 
 const resources = [
@@ -81,17 +88,17 @@ export default function Header() {
       <div className="hidden md:block bg-primary text-primary-foreground">
         <div className="container flex items-center justify-between py-2 text-sm">
           <div className="flex items-center gap-6">
-            <a href="tel:+2348034680544" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <a href="tel:+2348061535441" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <Phone className="h-4 w-4" />
-              <span>+234 803 468 0544</span>
+              <span>+234 806 153 5441</span>
             </a>
-            <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <a href="mailto:support@darafunmi.com" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <Mail className="h-4 w-4" />
-              <span>darafunmi2013@yahoo.com</span>
+              <span>support@darafunmi.com</span>
             </a>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-primary-foreground/80">Accuracy • Effectiveness • Competency</span>
+            <span className="text-primary-foreground/80">Precision • Quality • Innovation</span>
           </div>
         </div>
       </div>
@@ -263,14 +270,14 @@ export default function Header() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[380px] flex flex-col p-0 overflow-y-auto">
-                <div className="px-6 py-5 border-b">
+              <SheetContent side="right" className="w-[300px] sm:w-[380px] flex flex-col p-0">
+                <div className="px-6 py-5 border-b flex-shrink-0">
                   <SheetHeader>
                     <SheetTitle className="text-left text-base font-semibold">Navigation</SheetTitle>
                   </SheetHeader>
                 </div>
 
-                <nav className="flex-1 px-6 py-4 flex flex-col gap-1">
+                <nav className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-1">
                   {[
                     { label: "Home",     href: "/"        },
                     { label: "About Us", href: "/about"   },
@@ -325,7 +332,7 @@ export default function Header() {
                   </Accordion>
                 </nav>
 
-                <div className="px-6 py-4 border-t flex flex-col gap-3">
+                <div className="px-6 py-4 border-t flex flex-col gap-3 flex-shrink-0">
                   {isAuthenticated ? (
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="outline" className="w-full">My Account</Button>
@@ -342,16 +349,16 @@ export default function Header() {
                   </Link>
                 </div>
 
-                <div className="px-6 py-4 border-t bg-muted/30">
+                <div className="px-6 py-4 border-t bg-muted/30 flex-shrink-0">
                   <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-3">Get in touch</p>
                   <div className="flex flex-col gap-2">
-                    <a href="tel:+2348034680544" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <a href="tel:+2348061535441" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       <Phone className="h-4 w-4 flex-shrink-0" />
-                      +234 803 468 0544
+                      +234 806 153 5441
                     </a>
-                    <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <a href="mailto:support@darafunmi.com" className="flex items-center gap-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                       <Mail className="h-4 w-4 flex-shrink-0" />
-                      darafunmi2013@yahoo.com
+                      support@darafunmi.com
                     </a>
                   </div>
                 </div>

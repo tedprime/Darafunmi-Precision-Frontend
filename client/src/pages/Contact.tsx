@@ -114,8 +114,8 @@ export default function Contact() {
                       </div>
                       <div>
                         <h3 className="font-semibold mb-1">Phone</h3>
-                        <a href="tel:+2348034680544" className="text-muted-foreground hover:text-primary transition-colors">
-                          +234 803 468 0544
+                        <a href="tel:+2348061535441" className="text-muted-foreground hover:text-primary transition-colors">
+                          +234 806 153 5441
                         </a>
                         <p className="text-sm text-muted-foreground mt-1">Mon-Fri, 8am-5pm WAT</p>
                       </div>
@@ -131,8 +131,8 @@ export default function Contact() {
                       </div>
                       <div>
                         <h3 className="font-semibold mb-1">Email</h3>
-                        <a href="mailto:darafunmi2013@yahoo.com" className="text-muted-foreground hover:text-primary transition-colors">
-                          darafunmi2013@yahoo.com
+                        <a href="mailto:support@darafunmi.com" className="text-muted-foreground hover:text-primary transition-colors">
+                          support@darafunmi.com
                         </a>
                         <p className="text-sm text-muted-foreground mt-1">We reply within 24 hours</p>
                       </div>
@@ -166,8 +166,9 @@ export default function Contact() {
                       <div>
                         <h3 className="font-semibold mb-1">Address</h3>
                         <p className="text-muted-foreground">
-                          Redemption Camp,<br />
-                          Ogun State, Nigeria
+                          Behind Tantalizers – RUN (Redemption Camp),<br />
+                          KM 46, Lagos–Ibadan Expressway,<br />
+                          Mowe, Ogun State, Nigeria
                         </p>
                       </div>
                     </div>
@@ -183,9 +184,8 @@ export default function Contact() {
                       <div>
                         <h3 className="font-semibold mb-1">Business Hours</h3>
                         <p className="text-muted-foreground">
-                          Monday - Friday: 8:00 AM - 5:00 PM<br />
-                          Saturday: 9:00 AM - 1:00 PM<br />
-                          Sunday: Closed
+                          Monday – Friday: 8:00 AM – 5:00 PM<br />
+                          Saturday & Sunday: Closed
                         </p>
                       </div>
                     </div>
@@ -309,8 +309,9 @@ export default function Contact() {
             <div className="text-center mb-12">
               <h2 className="text-2xl font-bold mb-4">Visit Our Facility</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Our ISO-certified calibration laboratory is located in Redemption Camp, 
-                Ogun State. We welcome visits from clients and partners.
+                Our calibration laboratory and technical offices are located along the
+                Lagos–Ibadan Expressway at Redemption Camp, Mowe, Ogun State. We welcome
+                visits from clients and partners.
               </p>
             </div>
             <div className="bg-muted rounded-lg h-80 flex items-center justify-center">
@@ -348,7 +349,7 @@ export default function Contact() {
                 },
                 {
                   q: "What industries do you serve?",
-                  a: "We serve pharmaceutical, manufacturing, oil & gas, marine, beverages, and packaging industries.",
+                  a: "We serve manufacturing, oil & gas, pharmaceuticals, food & beverage, chemical processing, power & energy, FMCG, logistics, government agencies, and more.",
                 },
               ].map((faq, index) => (
                 <Card key={index}>
@@ -372,7 +373,7 @@ export default function Contact() {
               For urgent inquiries, call us directly or send a WhatsApp message.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="tel:+2348034680544">
+              <a href="tel:+2348061535441">
                 <Button size="lg" variant="secondary">
                   <Phone className="mr-2 h-5 w-5" />
                   Call Now

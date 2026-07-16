@@ -16,6 +16,9 @@ import {
   Clock,
   Shield,
   Award,
+  Cog,
+  Package,
+  ClipboardCheck,
 } from "lucide-react";
 
 // Service data
@@ -33,16 +36,16 @@ const servicesData: Record<string, {
   calibration: {
     icon: Microscope,
     title: "Calibration Services",
-    description: "ISO-compliant calibration for laboratory and medical equipment with traceable standards",
+    description: "ISO compliant calibration for laboratory and medical equipment with traceable standards",
     longDescription: "Our calibration services ensure your measuring instruments meet international standards and regulatory requirements. We provide traceable calibration with comprehensive documentation, helping you maintain compliance with industry regulations and quality management systems. Our ISO 17025 accredited laboratory uses reference standards traceable to national and international standards.",
     features: [
       "ISO 17025 accredited calibration laboratory",
       "Traceable measurement standards to SI units",
       "Comprehensive calibration certificates",
-      "On-site and laboratory calibration options",
+      "On site and laboratory calibration options",
       "Express service for urgent requirements",
       "Calibration reminder service",
-      "Multi-point calibration available",
+      "Multipoint calibration available",
       "Uncertainty of measurement reporting",
     ],
     benefits: [
@@ -65,7 +68,7 @@ const servicesData: Record<string, {
     ],
     process: [
       { step: 1, title: "Equipment Receipt", description: "We receive and inspect your equipment" },
-      { step: 2, title: "Pre-Calibration Check", description: "Initial assessment and documentation" },
+      { step: 2, title: "Pre Calibration Check", description: "Initial assessment and documentation" },
       { step: 3, title: "Calibration", description: "Calibration against traceable standards" },
       { step: 4, title: "Documentation", description: "Certificate and report generation" },
     ],
@@ -83,7 +86,7 @@ const servicesData: Record<string, {
       "Equipment overhaul and refurbishment",
       "Performance optimization",
       "24/7 emergency support",
-      "On-site service available",
+      "On site service available",
       "Detailed service reports",
     ],
     benefits: [
@@ -118,13 +121,13 @@ const servicesData: Record<string, {
     description: "Technical training for equipment operation and calibration procedures",
     longDescription: "Empower your team with the knowledge and skills to operate and maintain calibration equipment effectively. Our comprehensive training programs are designed for all skill levels, from basic operation to advanced calibration techniques. We offer both standard courses and customized training tailored to your specific needs.",
     features: [
-      "Hands-on practical training",
+      "Hands on practical training",
       "Customized curriculum options",
       "Certified and experienced instructors",
-      "On-site and virtual training options",
+      "On site and virtual training options",
       "Certification upon completion",
       "Training materials provided",
-      "Post-training support",
+      "Post training support",
       "Group and individual sessions",
     ],
     benefits: [
@@ -155,23 +158,23 @@ const servicesData: Record<string, {
   },
   consulting: {
     icon: Target,
-    title: "Consulting Services",
-    description: "Process optimization and compliance consulting for various industries",
+    title: "Technical Consultancy",
+    description: "Process optimization, operational excellence, and engineering project management",
     longDescription: "Our expert consultants help you optimize your processes, achieve regulatory compliance, and implement best practices in calibration and quality management. We work closely with your team to identify improvement opportunities and develop practical solutions that deliver measurable results.",
     features: [
+      "Manufacturing improvement programs",
       "Process optimization analysis",
-      "Regulatory compliance consulting",
-      "Quality system implementation",
-      "Audit preparation and support",
+      "Productivity enhancement strategies",
+      "Operational excellence frameworks",
+      "Engineering project management",
+      "Technical training for staff",
       "Gap analysis and remediation",
-      "Continuous improvement programs",
       "Standard operating procedures",
-      "Risk assessment and management",
     ],
     benefits: [
       "Achieve regulatory compliance",
       "Optimize operational efficiency",
-      "Reduce quality-related costs",
+      "Reduce quality related costs",
       "Improve process reliability",
       "Enhance competitive advantage",
       "Support business growth",
@@ -192,7 +195,130 @@ const servicesData: Record<string, {
       { step: 3, title: "Recommendations", description: "Develop action plan" },
       { step: 4, title: "Implementation", description: "Support execution and monitoring" },
     ],
-    pricing: "Contact us for project-based pricing",
+    pricing: "Contact us for project based pricing",
+  },
+  engineering: {
+    icon: Cog,
+    title: "Engineering Services",
+    description: "Mechanical engineering solutions, equipment installation, and plant maintenance",
+    longDescription: "We provide end to end engineering support — from equipment installation and commissioning to preventive maintenance programs and technical troubleshooting — keeping your plant running at optimal performance. Our engineers bring hands on expertise across a wide range of industrial equipment and systems.",
+    features: [
+      "Mechanical engineering solutions",
+      "Industrial equipment installation",
+      "Equipment commissioning",
+      "Plant maintenance programs",
+      "Preventive & predictive maintenance",
+      "Equipment troubleshooting",
+      "Technical support services",
+      "Performance monitoring",
+    ],
+    benefits: [
+      "Minimize plant downtime",
+      "Extend equipment service life",
+      "Improve operational efficiency",
+      "Reduce maintenance costs",
+      "Ensure safe plant operations",
+      "Support production continuity",
+    ],
+    equipment: [
+      "Industrial pumps and compressors",
+      "Heat exchangers",
+      "Piping systems",
+      "Mechanical drives and gearboxes",
+      "Conveyor systems",
+      "Pressure vessels",
+      "Valves and actuators",
+      "Rotating equipment",
+    ],
+    process: [
+      { step: 1, title: "Site Assessment", description: "Evaluate equipment and plant conditions" },
+      { step: 2, title: "Planning", description: "Develop installation or maintenance plan" },
+      { step: 3, title: "Execution", description: "Professional on site service delivery" },
+      { step: 4, title: "Commissioning", description: "Testing, sign off, and handover" },
+    ],
+    pricing: "Contact us for a customized quote",
+  },
+  procurement: {
+    icon: Package,
+    title: "Procurement & Supply Chain",
+    description: "Industrial procurement, vendor development, and supply chain management",
+    longDescription: "We support your procurement needs through strategic sourcing, vendor development, and supply chain management — ensuring you get the right equipment at the right time and price. Our procurement specialists have established relationships with leading manufacturers and distributors across Nigeria and internationally.",
+    features: [
+      "Industrial equipment procurement",
+      "Vendor identification and development",
+      "Strategic sourcing",
+      "Supply chain management",
+      "Inventory management support",
+      "Import facilitation",
+      "Quality inspection of procured items",
+      "Procurement consultancy",
+    ],
+    benefits: [
+      "Reduce procurement lead times",
+      "Access competitive pricing",
+      "Ensure product quality and authenticity",
+      "Simplify supplier management",
+      "Lower total procurement cost",
+      "Mitigate supply chain risk",
+    ],
+    equipment: [
+      "Laboratory instruments",
+      "Process control equipment",
+      "Industrial spare parts",
+      "Safety equipment",
+      "Calibration reference standards",
+      "Analytical instruments",
+      "Maintenance tools and consumables",
+      "Electrical and instrumentation materials",
+    ],
+    process: [
+      { step: 1, title: "Requirements", description: "Define specifications and quantities" },
+      { step: 2, title: "Sourcing", description: "Identify and evaluate suppliers" },
+      { step: 3, title: "Procurement", description: "Purchase, inspect, and ship" },
+      { step: 4, title: "Delivery", description: "On time delivery with documentation" },
+    ],
+    pricing: "Contact us for project based pricing",
+  },
+  "quality-assurance": {
+    icon: ClipboardCheck,
+    title: "Quality Assurance & Compliance",
+    description: "ISO management system implementation, internal audits, and quality inspection",
+    longDescription: "We help organizations implement and maintain robust quality management systems, conduct internal audits, evaluate suppliers, and manage risk — ensuring compliance with ISO 9001:2015 and other applicable standards. Our QA specialists bring deep experience across manufacturing, pharmaceutical, oil & gas, and government sectors.",
+    features: [
+      "ISO 9001:2015 QMS implementation",
+      "Internal quality audits",
+      "Supplier evaluation and qualification",
+      "Quality inspection services",
+      "Process improvement programs",
+      "Risk identification and management",
+      "Document control systems",
+      "Non conformance management",
+    ],
+    benefits: [
+      "Achieve and maintain ISO certification",
+      "Reduce quality related defects and costs",
+      "Improve customer satisfaction",
+      "Meet regulatory requirements",
+      "Build a culture of continuous improvement",
+      "Gain competitive advantage",
+    ],
+    equipment: [
+      "ISO 9001:2015 standards",
+      "Internal audit techniques",
+      "Root cause analysis",
+      "Corrective action processes",
+      "Supplier audit protocols",
+      "Inspection and test plans",
+      "Statistical process control",
+      "Management review facilitation",
+    ],
+    process: [
+      { step: 1, title: "Gap Analysis", description: "Assess current state vs. ISO requirements" },
+      { step: 2, title: "System Design", description: "Build QMS documentation and processes" },
+      { step: 3, title: "Implementation", description: "Deploy and train staff on the system" },
+      { step: 4, title: "Audit & Review", description: "Internal audit and continual improvement" },
+    ],
+    pricing: "Contact us for project based pricing",
   },
 };
 
@@ -336,7 +462,11 @@ export default function ServiceDetail() {
         <section className="section">
           <div className="container">
             <h2 className="text-2xl font-bold mb-8 text-center">
-              {slug === "training" || slug === "consulting" ? "Topics Covered" : "Equipment We Service"}
+              {slug === "calibration" || slug === "maintenance"
+                ? "Equipment We Service"
+                : slug === "procurement"
+                ? "Items We Procure"
+                : "Topics Covered"}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {service.equipment.map((item, index) => (
@@ -384,7 +514,7 @@ export default function ServiceDetail() {
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
-                  <a href="tel:+2348034680544">
+                  <a href="tel:+2348061535441">
                     <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">
                       <Phone className="mr-2 h-5 w-5" />
                       Call Us Now

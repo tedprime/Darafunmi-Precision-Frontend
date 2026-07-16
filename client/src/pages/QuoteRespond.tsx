@@ -111,8 +111,8 @@ export default function QuoteRespond() {
                 </div>
                 <div className="text-sm text-muted-foreground space-y-2">
                   <p>Questions? Contact our team:</p>
-                  <a href="tel:+2348034680544" className="flex items-center justify-center gap-2 hover:text-primary">
-                    <Phone className="w-4 h-4" /> +234 803 468 0544
+                  <a href="tel:+2348061535441" className="flex items-center justify-center gap-2 hover:text-primary">
+                    <Phone className="w-4 h-4" /> +234 806 153 5441
                   </a>
                   <a href="mailto:darafunmi2013@yahoo.com" className="flex items-center justify-center gap-2 hover:text-primary">
                     <Mail className="w-4 h-4" /> darafunmi2013@yahoo.com

@@ -21,26 +21,36 @@ import {
 } from "lucide-react";
 
 const quickLinks = [
-  { title: "About Us", href: "/about" },
-  { title: "Our Services", href: "/services" },
-  { title: "Products", href: "/products" },
-  { title: "Case Studies", href: "/case-studies" },
-  { title: "Blog", href: "/blog" },
-  { title: "Contact Us", href: "/contact" },
+  { title: "About Us",       href: "/about"           },
+  { title: "Our Services",   href: "/services"        },
+  { title: "Products",       href: "/products"        },
+  { title: "Quality Policy", href: "/quality-policy" },
+  { title: "Case Studies",   href: "/case-studies"    },
+  { title: "Blog",           href: "/blog"            },
+  { title: "Contact Us",     href: "/contact"         },
 ];
 
 const services = [
-  { title: "Calibration Services", href: "/services/calibration" },
-  { title: "Maintenance & Repair", href: "/services/maintenance" },
-  { title: "Training Programs", href: "/services/training" },
-  { title: "Consulting", href: "/services/consulting" },
+  { title: "Calibration Services",       href: "/services/calibration" },
+  { title: "Maintenance & Repair",       href: "/services/maintenance" },
+  { title: "Engineering Services",       href: "/services/engineering" },
+  { title: "Procurement & Supply Chain", href: "/services/procurement" },
+  { title: "Quality Assurance",          href: "/services/quality-assurance" },
+  { title: "Technical Consultancy",      href: "/services/consulting" },
+  { title: "Training Programs",          href: "/services/training" },
 ];
 
 const industries = [
-  { title: "Pharmaceutical", href: "/industries/pharmaceutical" },
-  { title: "Manufacturing", href: "/industries/manufacturing" },
-  { title: "Oil and Gas", href: "/industries/oil-and-gas" },
-  { title: "Marine", href: "/industries/marine" },
+  { title: "Manufacturing",            href: "/industries/manufacturing"         },
+  { title: "Oil & Gas",               href: "/industries/oil-and-gas"           },
+  { title: "Pharmaceutical",          href: "/industries/pharmaceutical"        },
+  { title: "Food & Beverage",         href: "/industries/food-beverage"         },
+  { title: "Power & Energy",          href: "/industries/power-energy"          },
+  { title: "Chemical Processing",     href: "/industries/chemical"              },
+  { title: "Engineering & Construction", href: "/industries/engineering-construction" },
+  { title: "FMCG",                    href: "/industries/fmcg"                  },
+  { title: "Logistics & Warehousing", href: "/industries/logistics-warehousing" },
+  { title: "Government Agencies",     href: "/industries/government-agencies"   },
 ];
 
 export default function Footer() {
@@ -138,23 +148,23 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-background/70 mb-6 max-w-sm">
-              Process Control Engineers & Calibration Contractors. Delivering
-              accuracy, effectiveness, and competency since 2006.
+              Engineering and technology company delivering high-quality calibration,
+              maintenance, procurement, and quality assurance solutions since 2006.
             </p>
             <div className="space-y-3">
               <a
-                href="tel:+2348034680544"
+                href="tel:+2348061535441"
                 className="flex items-center gap-3 text-background/70 hover:text-background transition-colors"
               >
                 <Phone className="h-5 w-5 text-primary" />
-                <span>+234 803 468 0544</span>
+                <span>+234 806 153 5441</span>
               </a>
               <a
-                href="mailto:darafunmi2013@yahoo.com"
+                href="mailto:support@darafunmi.com"
                 className="flex items-center gap-3 text-background/70 hover:text-background transition-colors"
               >
                 <Mail className="h-5 w-5 text-primary" />
-                <span>darafunmi2013@yahoo.com</span>
+                <span>support@darafunmi.com</span>
               </a>
               <a
                 href="https://wa.me/12044308339"
@@ -167,7 +177,7 @@ export default function Footer() {
               </a>
               <div className="flex items-start gap-3 text-background/70">
                 <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                <span>Redemption Camp, Ogun State, Nigeria</span>
+                <span>KM 46, Lagos–Ibadan Expressway, Redemption Camp, Mowe, Ogun State, Nigeria</span>
               </div>
             </div>
           </div>

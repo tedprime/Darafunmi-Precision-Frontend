@@ -384,7 +384,7 @@ export default function ProductDetail() {
                   <Link href="/contact">
                     <Button size="lg" variant="secondary">Contact Us</Button>
                   </Link>
-                  <a href="tel:+2348034680544">
+                  <a href="tel:+2348061535441">
                     <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-secondary">
                       <Phone className="mr-2 h-5 w-5" />
                       Call Now

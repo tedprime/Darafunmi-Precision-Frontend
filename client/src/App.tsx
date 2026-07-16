@@ -30,6 +30,7 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import QuoteRespond from "./pages/QuoteRespond";
+import QualityPolicy from "./pages/QualityPolicy";
 import ScrollToTop from "./components/ScrollToTop";
 
 function Router() {
@@ -62,6 +63,9 @@ function Router() {
         <Route path="/quote" component={Quote} />
         <Route path="/quotes/respond/:quoteNumber" component={QuoteRespond} />
         <Route path="/book-service" component={BookService} />
+
+        {/* Company */}
+        <Route path="/quality-policy" component={QualityPolicy} />
 
         {/* Blog & Content */}
         <Route path="/blog" component={Blog} />
